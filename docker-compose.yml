@@ -2,6 +2,7 @@ version: "3"
 
 services:
   web:
+    image: cisskey:v12.30.0
     build: .
     restart: always
     links:
@@ -12,7 +13,11 @@ services:
       - "127.0.0.1:3000:3000"
     networks:
       - internal_network
-      - external_network
+      - nginx-proxy-bridge
+    env_file:
+      - .config/docker_web.env
+    volumes:
+      - /mnt/linux/cisskey_files:/misskey/files
 
   redis:
     restart: always
@@ -45,4 +50,5 @@ services:
 networks:
   internal_network:
     internal: true
-  external_network:
+  nginx-proxy-bridge:
+    external: true
