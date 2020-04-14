@@ -144,7 +144,7 @@ export default () => new Vuex.Store({
 				fetch(endpoint.indexOf('://') > -1 ? endpoint : `${apiUrl}/${endpoint}`, {
 					method: 'POST',
 					body: JSON.stringify(data),
-					credentials: 'omit',
+					credentials: 'same-origin',
 					cache: 'no-cache'
 				}).then(async (res) => {
 					const body = res.status === 204 ? null : await res.json();
