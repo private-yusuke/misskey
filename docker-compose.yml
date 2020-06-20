@@ -17,7 +17,7 @@ services:
     env_file:
       - .config/docker_web.env
     volumes:
-      - /mnt/linux/cisskey_files:/misskey/files
+      - ./files:/misskey/files
 
   redis:
     restart: always
