@@ -7,6 +7,8 @@
 
 	<x-theme/>
 
+	<x-sidebar/>
+
 	<section class="_card">
 		<div class="_title"><fa :icon="faMusic"/> {{ $t('sounds') }}</div>
 		<div class="_content">
@@ -65,6 +67,8 @@
 				<template #desc><mfm text="🍮🍦🍭🍩🍰🍫🍬🥞🍪"/></template>
 			</mk-switch>
 			<mk-switch v-model="showFixedPostForm">{{ $t('showFixedPostForm') }}</mk-switch>
+			<mk-switch v-model="enableInfiniteScroll">{{ $t('enableInfiniteScroll') }}</mk-switch>
+			<mk-switch v-model="disablePagesScript">{{ $t('disablePagesScript') }}</mk-switch>
 		</div>
 		<div class="_content">
 			<mk-select v-model="lang">
@@ -89,15 +93,15 @@
 <script lang="ts">
 import Vue from 'vue';
 import { faImage, faCog, faMusic, faPlay, faVolumeUp, faVolumeMute } from '@fortawesome/free-solid-svg-icons';
-import MkInput from '../../components/ui/input.vue';
 import MkButton from '../../components/ui/button.vue';
 import MkSwitch from '../../components/ui/switch.vue';
 import MkSelect from '../../components/ui/select.vue';
 import MkRadio from '../../components/ui/radio.vue';
 import MkRange from '../../components/ui/range.vue';
 import XTheme from './theme.vue';
-import i18n from '../../i18n';
+import XSidebar from './sidebar.vue';
 import { langs } from '../../config';
+import { clientDb, set } from '../../db';
 
 const sounds = [
 	null,
@@ -117,8 +121,6 @@ const sounds = [
 ];
 
 export default Vue.extend({
-	i18n,
-
 	metaInfo() {
 		return {
 			title: this.$t('settings') as string
@@ -127,7 +129,7 @@ export default Vue.extend({
 
 	components: {
 		XTheme,
-		MkInput,
+		XSidebar,
 		MkButton,
 		MkSwitch,
 		MkSelect,
@@ -171,9 +173,19 @@ export default Vue.extend({
 			set(value) { this.$store.commit('device/set', { key: 'imageNewTab', value }); }
 		},
 
+		disablePagesScript: {
+			get() { return this.$store.state.device.disablePagesScript; },
+			set(value) { this.$store.commit('device/set', { key: 'disablePagesScript', value }); }
+		},
+
 		showFixedPostForm: {
 			get() { return this.$store.state.device.showFixedPostForm; },
 			set(value) { this.$store.commit('device/set', { key: 'showFixedPostForm', value }); }
+		},
+
+		enableInfiniteScroll: {
+			get() { return this.$store.state.device.enableInfiniteScroll; },
+			set(value) { this.$store.commit('device/setInfiniteScrollEnabling', value); }
 		},
 
 		sfxVolume: {
@@ -220,9 +232,23 @@ export default Vue.extend({
 
 	watch: {
 		lang() {
+			const dialog = this.$root.dialog({
+				type: 'waiting',
+				iconOnly: true
+			});
+
 			localStorage.setItem('lang', this.lang);
-			localStorage.removeItem('locale');
-			location.reload();
+
+			return set('_version_', `changeLang-${(new Date()).toJSON()}`, clientDb.i18n)
+				.then(() => location.reload())
+				.catch(() => {
+					dialog.close();
+					this.$root.dialog({
+						type: 'error',
+						iconOnly: true,
+						autoClose: true
+					});
+				});
 		},
 
 		fontSize() {
