@@ -3,8 +3,9 @@ import { utils, values } from '@syuilo/aiscript';
 export function createAiScriptEnv(vm, opts) {
 	let apiRequests = 0;
 	return {
-		USER_ID: values.STR(vm.$store.state.i.id),
-		USER_USERNAME: values.STR(vm.$store.state.i.username),
+		USER_ID: vm.$store.getters.isSignedIn ? values.STR(vm.$store.state.i.id) : values.NULL,
+		USER_NAME: vm.$store.getters.isSignedIn ? values.STR(vm.$store.state.i.name) : values.NULL,
+		USER_USERNAME: vm.$store.getters.isSignedIn ? values.STR(vm.$store.state.i.username) : values.NULL,
 		'Mk:dialog': values.FN_NATIVE(async ([title, text, type]) => {
 			await vm.$root.dialog({
 				type: type ? type.value : 'info',
@@ -19,12 +20,13 @@ export function createAiScriptEnv(vm, opts) {
 				title: title.value,
 				text: text.value,
 			});
-			return confirm.canceled ? values.FALSE : values.TRUE
+			return confirm.canceled ? values.FALSE : values.TRUE;
 		}),
 		'Mk:api': values.FN_NATIVE(async ([ep, param, token]) => {
+			if (token) utils.assertString(token);
 			apiRequests++;
 			if (apiRequests > 16) return values.NULL;
-			const res = await vm.$root.api(ep.value, utils.valToJs(param), token || null);
+			const res = await vm.$root.api(ep.value, utils.valToJs(param), token ? token.value : null);
 			return utils.jsToVal(res);
 		}),
 		'Mk:save': values.FN_NATIVE(([key, value]) => {

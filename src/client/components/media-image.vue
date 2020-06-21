@@ -1,12 +1,12 @@
 <template>
-<div class="qjewsnkgzzxlxtzncydssfbgjibiehcy" v-if="image.isSensitive && hide && !$store.state.device.alwaysShowNsfw" @click="hide = false">
+<div class="qjewsnkgzzxlxtzncydssfbgjibiehcy" v-if="hide" @click="hide = false">
 	<div>
 		<b><fa :icon="faExclamationTriangle"/> {{ $t('sensitive') }}</b>
 		<span>{{ $t('clickToShow') }}</span>
 	</div>
 </div>
 <div class="gqnyydlzavusgskkfvwvjiattxdzsqlf" v-else>
-	<i><fa :icon="faEyeSlash" @click="hide = true"></fa></i>
+	<i><fa :icon="faEyeSlash" @click="hide = true"/></i>
 	<a
 		:href="image.url"
 		:style="style"
@@ -21,12 +21,10 @@
 <script lang="ts">
 import Vue from 'vue';
 import { faExclamationTriangle, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
-import i18n from '../i18n';
 import { getStaticImageUrl } from '../scripts/get-static-image-url';
 import ImageViewer from './image-viewer.vue';
 
 export default Vue.extend({
-	i18n,
 	props: {
 		image: {
 			type: Object,
@@ -62,6 +60,9 @@ export default Vue.extend({
 				'background-image': url
 			};
 		}
+	},
+	created() {
+		this.hide = this.image.isSensitive && !this.$store.state.device.alwaysShowNsfw;
 	},
 	methods: {
 		onClick() {
