@@ -38,3 +38,6 @@ ormconfig.json
 *.blend3
 *.blend4
 *.blend5
+docker-compose.dev.yml
+Dockerfile.dev
+.devcontainer/devcontainer.json
