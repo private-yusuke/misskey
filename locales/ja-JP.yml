@@ -483,6 +483,7 @@ scratchpadDescription: "スクラッチパッドは、AiScriptの実験環境を
 output: "出力"
 script: "スクリプト"
 disablePagesScript: "Pagesのスクリプトを無効にする"
+hashtag: "#ハッシュタグ1 #ハッシュタグ2"
 
 _theme:
   explore: "テーマを探す"

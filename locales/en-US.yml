@@ -476,6 +476,8 @@ state: "State"
 sort: "Sort"
 ascendingOrder: "Ascending"
 descendingOrder: "Descending"
+hashtag: "#Hashtag1 #Hashtag2"
+
 _theme:
   explore: "Explore Themes"
   install: "Install theme"

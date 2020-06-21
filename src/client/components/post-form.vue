@@ -33,7 +33,8 @@
 			</div>
 		</div>
 		<input v-show="useCw" ref="cw" class="cw" v-model="cw" :placeholder="$t('annotation')" v-autocomplete="{ model: 'cw' }">
-		<textarea v-model="text" class="text" :class="{ withCw: useCw }" ref="text" :disabled="posting" :placeholder="placeholder" v-autocomplete="{ model: 'text' }" @keydown="onKeydown" @paste="onPaste"></textarea>
+		<textarea v-model="text" class="text" :class="{ withCw: useCw, withHashtag: useHashtag }" ref="text" :disabled="posting" :placeholder="placeholder" v-autocomplete="{ model: 'text' }" @keydown="onKeydown" @paste="onPaste"></textarea>
+		<input v-show="useHashtag" ref="hashtag" class="hashtag" v-model="hashtag" :placeholder="$t('hashtag')" v-autocomplete="{ model: 'hashtag' }">
 		<x-post-form-attaches class="attaches" :files="files"/>
 		<x-poll-editor v-if="poll" ref="poll" @destroyed="poll = false" @updated="onPollUpdate()"/>
 		<x-uploader ref="uploader" @uploaded="attachMedia" @change="onChangeUploadings"/>
@@ -44,6 +45,7 @@
 			<button class="_button" @click="insertMention"><fa :icon="faAt"/></button>
 			<button class="_button" @click="insertEmoji"><fa :icon="faLaughSquint"/></button>
 			<button class="_button" v-if="visibility !== 'specified'" @click="localOnly = !localOnly" :class="{ active: localOnly }"><fa :icon="faBiohazard"/></button>
+			<button class="_button" @click="useHashtag = !useHashtag" :class="{ active: useHashtag }"><fa :icon="faHashtag"/></button>
 		</footer>
 		<input ref="file" class="file _button" type="file" multiple="multiple" @change="onChangeFile"/>
 	</div>
@@ -52,7 +54,7 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { faReply, faQuoteRight, faPaperPlane, faTimes, faUpload, faChartPie, faGlobe, faHome, faUnlock, faEnvelope, faPlus, faPhotoVideo, faCloud, faLink, faAt, faBiohazard } from '@fortawesome/free-solid-svg-icons';
+import { faReply, faQuoteRight, faPaperPlane, faTimes, faUpload, faChartPie, faGlobe, faHome, faUnlock, faEnvelope, faPlus, faPhotoVideo, faCloud, faLink, faAt, faBiohazard, faHashtag } from '@fortawesome/free-solid-svg-icons';
 import { faEyeSlash, faLaughSquint } from '@fortawesome/free-regular-svg-icons';
 import insertTextAtCursor from 'insert-text-at-cursor';
 import { length } from 'stringz';
@@ -127,7 +129,9 @@ export default Vue.extend({
 			pollMultiple: false,
 			pollExpiration: [],
 			useCw: false,
+			useHashtag: false,
 			cw: null,
+			hashtag: '',
 			localOnly: false,
 			visibility: 'public',
 			visibleUsers: [],
@@ -135,7 +139,7 @@ export default Vue.extend({
 			draghover: false,
 			quoteId: null,
 			recentHashtags: JSON.parse(localStorage.getItem('hashtags') || '[]'),
-			faReply, faQuoteRight, faPaperPlane, faTimes, faUpload, faChartPie, faGlobe, faHome, faUnlock, faEnvelope, faEyeSlash, faLaughSquint, faPlus, faPhotoVideo, faCloud, faLink, faAt, faBiohazard
+			faReply, faQuoteRight, faPaperPlane, faTimes, faUpload, faChartPie, faGlobe, faHome, faUnlock, faEnvelope, faEyeSlash, faLaughSquint, faPlus, faPhotoVideo, faCloud, faLink, faAt, faBiohazard, faHashtag
 		};
 	},
 
@@ -281,6 +285,11 @@ export default Vue.extend({
 						});
 					}
 				}
+				const draft_hashtag = JSON.parse(localStorage.getItem('draft_hashtag') || '{}');
+				if (draft_hashtag) {
+					this.useHashtag = draft_hashtag.useHashtag;
+					this.hashtag = draft_hashtag.hashtag;
+				}
 			}
 
 			// 削除して編集
@@ -317,6 +326,8 @@ export default Vue.extend({
 			this.$watch('files', () => this.saveDraft());
 			this.$watch('visibility', () => this.saveDraft());
 			this.$watch('localOnly', () => this.saveDraft());
+			this.$watch('useHashtag', () => this.saveDraftHashtag());
+			this.$watch('hashtag', () => this.saveDraftHashtag());
 		},
 
 		trimmedLength(text: string) {
@@ -524,6 +535,15 @@ export default Vue.extend({
 			localStorage.setItem('drafts', JSON.stringify(data));
 		},
 
+		saveDraftHashtag() {
+			if (this.instant) return;
+			const data = {
+				useHashtag: this.useHashtag,
+				hashtag: this.hashtag
+			};
+			localStorage.setItem('draft_hashtag', JSON.stringify(data));
+		},
+
 		deleteDraft() {
 			const data = JSON.parse(localStorage.getItem('drafts') || '{}');
 
@@ -535,7 +555,11 @@ export default Vue.extend({
 		post() {
 			this.posting = true;
 			this.$root.api('notes/create', {
-				text: this.text == '' ? undefined : this.text,
+				text: this.text == ''
+					? undefined
+					: this.useHashtag
+						? this.text + "\n" + this.hashtag
+						: this.text,
 				fileIds: this.files.length > 0 ? this.files.map(f => f.id) : undefined,
 				replyId: this.reply ? this.reply.id : undefined,
 				renoteId: this.renote ? this.renote.id : this.quoteId ? this.quoteId : undefined,
@@ -715,6 +739,7 @@ export default Vue.extend({
 		}
 
 		> .cw,
+		> .hashtag,
 		> .text {
 			display: block;
 			box-sizing: border-box;
@@ -747,6 +772,12 @@ export default Vue.extend({
 			border-bottom: solid 1px var(--divider);
 		}
 
+		> .hashtag {
+			border-top: solid 1px var(--divider);
+			padding-top: 8px;
+			padding-bottom: 8px;
+		}
+
 		> .text {
 			max-width: 100%;
 			min-width: 100%;
@@ -758,6 +789,10 @@ export default Vue.extend({
 
 			&.withCw {
 				padding-top: 8px;
+			}
+
+			&.withHashtag {
+				margin-bottom: 8px;
 			}
 		}
 
