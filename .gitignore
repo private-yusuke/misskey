@@ -38,8 +38,6 @@ ormconfig.json
 *.blend3
 *.blend4
 *.blend5
-
-# VSCode Remote Container
-.devcontainer/devcontainer.json
 docker-compose.dev.yml
 Dockerfile.dev
+.devcontainer/devcontainer.json

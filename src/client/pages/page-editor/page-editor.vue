@@ -46,7 +46,7 @@
 				</div>
 			</template>
 
-			<x-blocks class="content" v-model="content" :aoi-script="aoiScript"/>
+			<x-blocks class="content" v-model="content" :hpml="hpml"/>
 
 			<mk-button @click="add()" v-if="!readonly"><fa :icon="faPlus"/></mk-button>
 		</section>
@@ -62,7 +62,7 @@
 					@input="v => updateVariable(v)"
 					@remove="() => removeVariable(variable)"
 					:key="variable.name"
-					:aoi-script="aoiScript"
+					:hpml="hpml"
 					:name="variable.name"
 					:title="variable.name"
 					:draggable="true"
@@ -86,12 +86,11 @@
 import Vue from 'vue';
 import * as XDraggable from 'vuedraggable';
 import "prismjs";
-import "prismjs/themes/prism.css";
+import 'prismjs/themes/prism-okaidia.css';
 import PrismEditor from 'vue-prism-editor';
 import { faICursor, faPlus, faMagic, faCog, faCode, faExternalLinkSquareAlt } from '@fortawesome/free-solid-svg-icons';
 import { faSave, faStickyNote, faTrashAlt } from '@fortawesome/free-regular-svg-icons';
 import { v4 as uuid } from 'uuid';
-import i18n from '../../i18n';
 import XVariable from './page-editor.script-block.vue';
 import XBlocks from './page-editor.blocks.vue';
 import MkTextarea from '../../components/ui/textarea.vue';
@@ -100,15 +99,13 @@ import MkButton from '../../components/ui/button.vue';
 import MkSelect from '../../components/ui/select.vue';
 import MkSwitch from '../../components/ui/switch.vue';
 import MkInput from '../../components/ui/input.vue';
-import { blockDefs } from '../../scripts/aoiscript/index';
-import { ASTypeChecker } from '../../scripts/aoiscript/type-checker';
+import { blockDefs } from '../../scripts/hpml/index';
+import { HpmlTypeChecker } from '../../scripts/hpml/type-checker';
 import { url } from '../../config';
 import { collectPageVars } from '../../scripts/collect-page-vars';
 import { selectDriveFile } from '../../scripts/select-drive-file';
 
 export default Vue.extend({
-	i18n,
-
 	components: {
 		XDraggable, XVariable, XBlocks, MkTextarea, MkContainer, MkButton, MkSelect, MkSwitch, MkInput, PrismEditor
 	},
@@ -145,7 +142,7 @@ export default Vue.extend({
 			alignCenter: false,
 			hideTitleWhenPinned: false,
 			variables: [],
-			aoiScript: null,
+			hpml: null,
 			script: '',
 			showOptions: false,
 			url,
@@ -166,14 +163,14 @@ export default Vue.extend({
 	},
 
 	async created() {
-		this.aoiScript = new ASTypeChecker();
+		this.hpml = new HpmlTypeChecker();
 
 		this.$watch('variables', () => {
-			this.aoiScript.variables = this.variables;
+			this.hpml.variables = this.variables;
 		}, { deep: true });
 
 		this.$watch('content', () => {
-			this.aoiScript.pageVars = collectPageVars(this.content);
+			this.hpml.pageVars = collectPageVars(this.content);
 		}, { deep: true });
 
 		if (this.initPageId) {
@@ -322,7 +319,7 @@ export default Vue.extend({
 
 			name = name.trim();
 
-			if (this.aoiScript.isUsedName(name)) {
+			if (this.hpml.isUsedName(name)) {
 				this.$root.dialog({
 					type: 'error',
 					text: this.$t('_pages.variableNameIsAlreadyUsed')
@@ -351,6 +348,7 @@ export default Vue.extend({
 					{ value: 'text', text: this.$t('_pages.blocks.text') },
 					{ value: 'image', text: this.$t('_pages.blocks.image') },
 					{ value: 'textarea', text: this.$t('_pages.blocks.textarea') },
+					{ value: 'canvas', text: this.$t('_pages.blocks.canvas') },
 				]
 			}, {
 				label: this.$t('_pages.inputBlocks'),
@@ -428,8 +426,6 @@ export default Vue.extend({
 	margin-bottom: var(--margin);
 
 	> header {
-		background: var(--faceHeader);
-
 		> .title {
 			z-index: 1;
 			margin: 0;
@@ -437,8 +433,7 @@ export default Vue.extend({
 			line-height: 42px;
 			font-size: 0.9em;
 			font-weight: bold;
-			color: var(--faceHeaderText);
-			box-shadow: 0 var(--lineWidth) rgba(#000, 0.07);
+			box-shadow: 0 1px rgba(#000, 0.07);
 
 			> [data-icon] {
 				margin-right: 6px;
