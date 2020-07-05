@@ -1,5 +1,7 @@
 <template>
 <mk-tooltip :source="source" ref="tooltip">
+	<span>{{ emojiName }}</span>
+	<br>
 	<template v-if="users.length <= 10">
 		<b v-for="u in users" :key="u.id" style="margin-right: 12px;">
 			<mk-avatar :user="u" style="width: 24px; height: 24px; margin-right: 2px;"/>
@@ -39,9 +41,13 @@ export default Vue.extend({
 		},
 		source: {
 			required: true,
+		},
+		emojiName: {
+			type: String,
+			required: true,
 		}
 	},
-
+	
 	methods: {
 		close() {
 			this.$refs.tooltip.close();
