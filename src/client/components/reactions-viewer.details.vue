@@ -47,7 +47,6 @@ export default Vue.extend({
 			required: true,
 		}
 	},
-	
 	methods: {
 		close() {
 			this.$refs.tooltip.close();
