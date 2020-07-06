@@ -20,6 +20,7 @@
 import Vue from 'vue';
 import XDetails from './reactions-viewer.details.vue';
 import XReactionIcon from './reaction-icon.vue';
+import { emojilist } from '../../misc/emojilist';
 
 export default Vue.extend({
 	components: {
@@ -118,7 +119,8 @@ export default Vue.extend({
 					reaction: this.reaction,
 					users,
 					count: this.count,
-					source: this.$refs.reaction
+					source: this.$refs.reaction,
+					emojiName: this.returnEmojiName()
 				});
 			});
 		},
@@ -132,6 +134,20 @@ export default Vue.extend({
 			if (document.hidden) return;
 
 			// TODO
+		},
+		returnEmojiCode(emoji: String) {
+			let codes = Array.from(emoji).map(x => x.codePointAt(0).toString(16));
+			if (!codes.includes('200d')) codes = codes.filter(x => x != 'fe0f');
+			codes = codes.filter(x => x && x.length);
+			return codes.join('-');
+		},
+		returnEmojiName() {
+			if (this.reaction.startsWith(':')) {
+				return this.reaction;
+			} else {
+				let emoji = emojilist.filter(e => this.returnEmojiCode(e.char) === this.returnEmojiCode(this.reaction));
+				return ':' + emoji[0]['name'] + ':';
+			}
 		},
 	}
 });
