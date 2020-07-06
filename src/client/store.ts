@@ -23,7 +23,7 @@ export const defaultDeviceUserSettings = {
 	localOnly: false,
 	widgets: [],
 	tl: {
-		src: 'home'
+		src: 'local'
 	},
 	menu: [
 		'notifications',
