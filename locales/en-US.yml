@@ -488,7 +488,7 @@ state: "State"
 sort: "Sort"
 ascendingOrder: "Ascending"
 descendingOrder: "Descending"
-hashtags: "#Hashtag1 #Hashtag2"
+hashtagPlaceholder: "#Hashtag1 #Hashtag2"
 hashtag: "Hashtag"
 
 scratchpad: "Scratch pad"

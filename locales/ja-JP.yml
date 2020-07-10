@@ -493,7 +493,7 @@ scratchpadDescription: "スクラッチパッドは、AiScriptの実験環境を
 output: "出力"
 script: "スクリプト"
 disablePagesScript: "Pagesのスクリプトを無効にする"
-hashtags: "#ハッシュタグ1 #ハッシュタグ2"
+hashtagPlaceholder: "#ハッシュタグ1 #ハッシュタグ2"
 hashtag: "ハッシュタグ"
 updateRemoteUser: "リモートユーザー情報の更新"
 deleteAllFiles: "すべてのファイルを削除"

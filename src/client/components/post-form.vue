@@ -35,7 +35,7 @@
 		</div>
 		<input v-show="useCw" ref="cw" class="cw" v-model="cw" :placeholder="$t('annotation')" v-autocomplete="{ model: 'cw' }">
 		<textarea v-model="text" class="text" :class="{ withCw: useCw, withHashtag: useHashtag }" ref="text" :disabled="posting" :placeholder="placeholder" v-autocomplete="{ model: 'text' }" @keydown="onKeydown" @paste="onPaste"></textarea>
-		<input v-show="useHashtag" ref="hashtag" class="hashtag" v-model="hashtag" :placeholder="$t('hashtags')" v-autocomplete="{ model: 'hashtag' }">
+		<input v-show="useHashtag" ref="hashtag" class="hashtag" v-model="hashtag" :placeholder="$t('hashtagPlaceholder')" v-autocomplete="{ model: 'hashtag' }">
 		<x-post-form-attaches class="attaches" :files="files"/>
 		<x-poll-editor v-if="poll" ref="poll" @destroyed="poll = false" @updated="onPollUpdate()"/>
 		<x-uploader ref="uploader" @uploaded="attachMedia" @change="onChangeUploadings"/>
