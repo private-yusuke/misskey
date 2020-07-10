@@ -551,11 +551,11 @@ export default Vue.extend({
 		post() {
 			this.posting = true;
 			this.$root.api('notes/create', {
-				text: this.text == ''
+				text: (this.text == '' && !this.useHashtag)
 					? undefined
-					: this.useHashtag
+					: (this.useHashtag
 						? this.text + "\n" + this.hashtag
-						: this.text,
+						: this.text),
 				fileIds: this.files.length > 0 ? this.files.map(f => f.id) : undefined,
 				replyId: this.reply ? this.reply.id : undefined,
 				renoteId: this.renote ? this.renote.id : this.quoteId ? this.quoteId : undefined,
