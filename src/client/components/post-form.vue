@@ -283,7 +283,7 @@ export default Vue.extend({
 						});
 					}
 				}
-				const draft_hashtag = JSON.parse(localStorage.getItem('draft_hashtag') || '{}');
+				const draft_hashtag = JSON.parse(localStorage.getItem('drafts') || '{}')['hashtag'];
 				if (draft_hashtag) {
 					this.useHashtag = draft_hashtag.useHashtag;
 					this.hashtag = draft_hashtag.hashtag;
@@ -324,8 +324,8 @@ export default Vue.extend({
 			this.$watch('files', () => this.saveDraft());
 			this.$watch('visibility', () => this.saveDraft());
 			this.$watch('localOnly', () => this.saveDraft());
-			this.$watch('useHashtag', () => this.saveDraftHashtag());
-			this.$watch('hashtag', () => this.saveDraftHashtag());
+			this.$watch('useHashtag', () => this.saveDraft());
+			this.$watch('hashtag', () => this.saveDraft());
 		},
 
 		trimmedLength(text: string) {
@@ -532,16 +532,12 @@ export default Vue.extend({
 				}
 			};
 
-			localStorage.setItem('drafts', JSON.stringify(data));
-		},
-
-		saveDraftHashtag() {
-			if (this.instant) return;
-			const data = {
+			data['hashtag'] = {
 				useHashtag: this.useHashtag,
 				hashtag: this.hashtag
 			};
-			localStorage.setItem('draft_hashtag', JSON.stringify(data));
+
+			localStorage.setItem('drafts', JSON.stringify(data));
 		},
 
 		deleteDraft() {
