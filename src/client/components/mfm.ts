@@ -10,6 +10,15 @@ import MkCode from './code.vue';
 import MkGoogle from './google.vue';
 import { host } from '../config';
 
+function toDirection(attr: string): string {
+	switch (attr) {
+		case 'left': return 'reverse';
+		case 'right': return 'normal';
+		case 'alternate': return 'alternate';
+		default: return 'normal';
+	}
+}
+
 export default Vue.component('misskey-flavored-markdown', {
 	props: {
 		text: {
@@ -118,19 +127,23 @@ export default Vue.component('misskey-flavored-markdown', {
 				}
 
 				case 'spin': {
-					function toDirection(attr: string): string {
-						switch (attr) {
-							case 'left': return 'reverse';
-							case 'right': return 'normal';
-							case 'alternate': return 'alternate';
-							default: return 'normal';
-						}
-					}
-
 					const attrs = token.node.props.attrs || [];
 					const direction = attrs.length > 0 ? toDirection(attrs[0]) : 'normal';
 					const style = this.$store.state.device.animatedMfm
 						? `animation: spin 1.5s linear infinite; animation-direction: ${direction};` : '';
+					return (createElement as any)('span', {
+						attrs: {
+							style: 'display: inline-block;' + style
+						},
+					}, genEl(token.children));
+				}
+
+				case 'slide': {
+					const attrs = token.node.props.attrs || [];
+					const direction = attrs.length > 0 ? toDirection(attrs[0]) : 'normal';
+					const duration = attrs.length > 1 ? attrs[1] : '3s';
+					const style = this.$store.state.device.animatedMfm
+						? `animation: slide ${duration} linear infinite; animation-direction: ${direction};` : '';
 					return (createElement as any)('span', {
 						attrs: {
 							style: 'display: inline-block;' + style

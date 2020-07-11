@@ -465,3 +465,8 @@ hr {
 	30% { opacity: 1; transform: scale(1); }
 	90% { opacity: 0; transform: scale(0.5); }
 }
+
+@keyframes slide {
+	0% { transform: translateX(0%); }
+	100% { transform: translateX(100%); }
+}
