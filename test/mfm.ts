@@ -1309,6 +1309,9 @@ describe('MFM', () => {
 		it('回転', () => {
 			assert.deepStrictEqual(toString(parse('<spin>回転</spin>')), '<spin>回転</spin>');
 		});
+		it('回転 ネスト', () => {
+			assert.deepStrictEqual(toString(parse('<spin><spin>回転</spin></spin>')), '<spin><spin>回転</spin></spin>');
+		});
 		it('右回転', () => {
 			assert.deepStrictEqual(toString(parse('<spin right>右回転</spin>')), '<spin right>右回転</spin>');
 		});
