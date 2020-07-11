@@ -13,6 +13,14 @@ export function toString(tokens: MfmForest | null, opts?: RestoreOptions): strin
 		return children.map(t => handlers[t.node.type](t, opts)).join('');
 	}
 
+	function tagHandler(name: string): (token: MfMTree, opts?: RestoreOptions) => string {
+		return (token, opts) => {
+			const attrs = token.node.props?.attrs;
+			const post = attrs ? ` ${attrs.join(' ')}` : '';
+			return `<${name}${post}>${appendChildren(token.children, opts)}</${name}>`;
+		};
+	}
+
 	const handlers: { [key: string]: (token: MfmTree, opts?: RestoreOptions) => string } = {
 		bold(token, opts) {
 			return `**${appendChildren(token.children, opts)}**`;
@@ -22,43 +30,27 @@ export function toString(tokens: MfmForest | null, opts?: RestoreOptions): strin
 			return `***${appendChildren(token.children, opts)}***`;
 		},
 
-		small(token, opts) {
-			return `<small>${appendChildren(token.children, opts)}</small>`;
-		},
+		small: tagHandler('small'),
 
 		strike(token, opts) {
 			return `~~${appendChildren(token.children, opts)}~~`;
 		},
 
-		italic(token, opts) {
-			return `<i>${appendChildren(token.children, opts)}</i>`;
-		},
+		italic: tagHandler('i'),
 
-		motion(token, opts) {
-			return `<motion>${appendChildren(token.children, opts)}</motion>`;
-		},
+		motion: tagHandler('motion'),
 
-		spin(token, opts) {
-			const attr = token.node.props?.attr;
-			const post = attr ? ` ${attr}` : '';
-			return `<spin${post}>${appendChildren(token.children, opts)}</spin>`;
-		},
+		spin: tagHandler('spin'),
 
-		jump(token, opts) {
-			return `<jump>${appendChildren(token.children, opts)}</jump>`;
-		},
+		jump: tagHandler('jump'),
 
-		flip(token, opts) {
-			return `<flip>${appendChildren(token.children, opts)}</flip>`;
-		},
+		flip: tagHandler('flip'),
 
 		blockCode(token) {
 			return `\`\`\`${token.node.props.lang || ''}\n${token.node.props.code}\n\`\`\`\n`;
 		},
 
-		center(token, opts) {
-			return `<center>${appendChildren(token.children, opts)}</center>`;
-		},
+		center: tagHandler('center'),
 
 		emoji(token) {
 			return (token.node.props.emoji ? token.node.props.emoji : `:${token.node.props.name}:`);
