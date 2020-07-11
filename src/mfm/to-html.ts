@@ -72,6 +72,12 @@ export function toHtml(tokens: MfmForest | null, mentionedRemoteUsers: IMentione
 			return el;
 		},
 
+		slide(token) {
+			const el = doc.createElement('i');
+			appendChildren(token.children, el);
+			return el;
+		},
+
 		blockCode(token) {
 			const pre = doc.createElement('pre');
 			const inner = doc.createElement('code');

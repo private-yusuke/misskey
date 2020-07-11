@@ -52,6 +52,8 @@ export function toString(tokens: MfmForest | null, opts?: RestoreOptions): strin
 
 		center: tagHandler('center'),
 
+		slide: tagHandler('slide'),
+
 		emoji(token) {
 			return (token.node.props.emoji ? token.node.props.emoji : `:${token.node.props.name}:`);
 		},
