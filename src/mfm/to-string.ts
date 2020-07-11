@@ -40,6 +40,8 @@ export function toString(tokens: MfmForest | null, opts?: RestoreOptions): strin
 
 		motion: tagHandler('motion'),
 
+		animate: tagHandler('animate'),
+
 		spin: tagHandler('spin'),
 
 		jump: tagHandler('jump'),

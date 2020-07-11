@@ -54,6 +54,12 @@ export function toHtml(tokens: MfmForest | null, mentionedRemoteUsers: IMentione
 			return el;
 		},
 
+		animate(token) {
+			const el = doc.createElement('i');
+			appendChildren(token.children, el);
+			return el;
+		},
+
 		spin(token) {
 			const el = doc.createElement('i');
 			appendChildren(token.children, el);
