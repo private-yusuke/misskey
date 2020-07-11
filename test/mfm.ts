@@ -261,9 +261,7 @@ describe('MFM', () => {
 				assert.deepStrictEqual(tokens, [
 					tree('spin', [
 						text('foo')
-					], {
-						attr: null
-					}),
+					], {}),
 				]);
 			});
 
@@ -272,9 +270,7 @@ describe('MFM', () => {
 				assert.deepStrictEqual(tokens, [
 					tree('spin', [
 						leaf('emoji', { name: 'foo' })
-					], {
-						attr: null
-					}),
+					], {}),
 				]);
 			});
 
@@ -284,24 +280,20 @@ describe('MFM', () => {
 					tree('spin', [
 						leaf('emoji', { name: 'foo' })
 					], {
-						attr: 'left'
+						attrs: ['left']
 					}),
 				]);
 			});
-/*
+
 			it('multi', () => {
 				const tokens = parse('<spin>:foo:</spin><spin>:foo:</spin>');
 				assert.deepStrictEqual(tokens, [
 					tree('spin', [
 						leaf('emoji', { name: 'foo' })
-					], {
-						attr: null
-					}),
+					], {}),
 					tree('spin', [
 						leaf('emoji', { name: 'foo' })
-					], {
-						attr: null
-					}),
+					], {}),
 				]);
 			});
 
@@ -311,15 +303,10 @@ describe('MFM', () => {
 					tree('spin', [
 						tree('spin', [
 							leaf('emoji', { name: 'foo' })
-						], {
-							attr: null
-						}),
-					], {
-						attr: null
-					}),
+						], {}),
+					], {}),
 				]);
 			});
-*/
 		});
 
 		it('jump', () => {
