@@ -5,6 +5,18 @@ import parseAcct from '../misc/acct/parse';
 import { toUnicode } from 'punycode';
 import { emojiRegex } from '../misc/emoji-regex';
 
+function tag(r, tagName: string, nodeName?: string) {
+	const attr = P.regexp(/[a-zA-Z0-9\.]+/);
+	const attrs = P.whitespace.then(attr.skip(P.optWhitespace).many()).fallback(null);
+	const openTag = P.string(`<${tagName}`).then(attrs).skip(P.string('>'));
+	const closeTag = P.string(`</${tagName}>`);
+	const content = P.notFollowedBy(closeTag).then(r.inline).atLeast(1);
+	return P.seqMap(openTag, content.skip(closeTag), (attrs, children) => {
+		const props = attrs ? { attrs } : {};
+		return createTree(nodeName || tagName, children, props);
+	});
+}
+
 export function removeOrphanedBrackets(s: string): string {
 	const openBrackets = ['(', '「', '['];
 	const closeBrackets = [')', '」', ']'];
@@ -91,38 +103,29 @@ export const mfmLanguage = P.createLanguage({
 		const underscore = P.regexp(/__([a-zA-Z0-9\s]+?)__/, 1);
 		return P.alt(asterisk, underscore).map(x => createTree('bold', r.inline.atLeast(1).tryParse(x), {}));
 	},
-	small: r => P.regexp(/<small>([\s\S]+?)<\/small>/, 1).map(x => createTree('small', r.inline.atLeast(1).tryParse(x), {})),
+	small: r => tag(r, 'small'),
 	italic: r => {
-		const xml = P.regexp(/<i>([\s\S]+?)<\/i>/, 1);
+		const xml = tag(r, 'i', 'italic');
 		const underscore = P((input, i) => {
 			const text = input.substr(i);
 			const match = text.match(/^(\*|_)([a-zA-Z0-9]+?[\s\S]*?)\1/);
 			if (!match) return P.makeFailure(i, 'not a italic');
 			if (input[i - 1] != null && input[i - 1] != ' ' && input[i - 1] != '\n') return P.makeFailure(i, 'not a italic');
 			return P.makeSuccess(i + match[0].length, match[2]);
-		});
+		}).map(x => createTree('italic', r.inline.atLeast(1).tryParse(x), {}));
 
-		return P.alt(xml, underscore).map(x => createTree('italic', r.inline.atLeast(1).tryParse(x), {}));
+		return P.alt(xml, underscore);
 	},
 	strike: r => P.regexp(/~~([^\n~]+?)~~/, 1).map(x => createTree('strike', r.inline.atLeast(1).tryParse(x), {})),
 	motion: r => {
-		const paren = P.regexp(/\(\(\(([\s\S]+?)\)\)\)/, 1);
-		const xml = P.regexp(/<motion>(.+?)<\/motion>/, 1);
-		return P.alt(paren, xml).map(x => createTree('motion', r.inline.atLeast(1).tryParse(x), {}));
+		const paren = P.regexp(/\(\(\(([\s\S]+?)\)\)\)/, 1).map(x => createTree('motion', r.inline.atLeast(1).tryParse(x), {}));
+		const xml = tag(r, 'motion');
+		return P.alt(paren, xml);
 	},
-	spin: r => {
-		return P((input, i) => {
-			const text = input.substr(i);
-			const match = text.match(/^<spin(\s[a-z]+?)?>(.+?)<\/spin>/i);
-			if (!match) return P.makeFailure(i, 'not a spin');
-			return P.makeSuccess(i + match[0].length, {
-				content: match[2], attr: match[1] ? match[1].trim() : null
-			});
-		}).map(x => createTree('spin', r.inline.atLeast(1).tryParse(x.content), { attr: x.attr }));
-	},
-	jump: r => P.regexp(/<jump>(.+?)<\/jump>/, 1).map(x => createTree('jump', r.inline.atLeast(1).tryParse(x), {})),
-	flip: r => P.regexp(/<flip>(.+?)<\/flip>/, 1).map(x => createTree('flip', r.inline.atLeast(1).tryParse(x), {})),
-	center: r => r.startOfLine.then(P.regexp(/<center>([\s\S]+?)<\/center>/, 1).map(x => createTree('center', r.inline.atLeast(1).tryParse(x), {}))),
+	spin: r => tag(r, 'spin'),
+	jump: r => tag(r, 'jump'),
+	flip: r => tag(r, 'flip'),
+	center: r => tag(r, 'center'),
 	inlineCode: () => P.regexp(/`([^´\n]+?)`/, 1).map(x => createLeaf('inlineCode', { code: x })),
 	mathBlock: r => r.startOfLine.then(P.regexp(/\\\[([\s\S]+?)\\\]/, 1).map(x => createLeaf('mathBlock', { formula: x.trim() }))),
 	mathInline: () => P.regexp(/\\\((.+?)\\\)/, 1).map(x => createLeaf('mathInline', { formula: x })),
