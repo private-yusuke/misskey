@@ -118,10 +118,17 @@ export default Vue.component('misskey-flavored-markdown', {
 				}
 
 				case 'spin': {
-					const direction =
-						token.node.props.attr == 'left' ? 'reverse' :
-						token.node.props.attr == 'alternate' ? 'alternate' :
-						'normal';
+					function toDirection(attr: string): string {
+						switch (attr) {
+							case 'left': return 'reverse';
+							case 'right': return 'normal';
+							case 'alternate': return 'alternate';
+							default: return 'normal';
+						}
+					}
+
+					const attrs = token.node.props.attrs || [];
+					const direction = attrs.length > 0 ? toDirection(attrs[0]) : 'normal';
 					const style = this.$store.state.device.animatedMfm
 						? `animation: spin 1.5s linear infinite; animation-direction: ${direction};` : '';
 					return (createElement as any)('span', {
