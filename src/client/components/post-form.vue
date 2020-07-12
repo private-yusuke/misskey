@@ -548,14 +548,21 @@ export default Vue.extend({
 			localStorage.setItem('drafts', JSON.stringify(data));
 		},
 
+		buildText() {
+			let text = this.text;
+			if (this.useHashtag) {
+				text += "\n" + this.hashtag;
+			}
+			if (text === '') {
+				return undefined;
+			}
+			return text;
+		},
+		
 		post() {
 			this.posting = true;
 			this.$root.api('notes/create', {
-				text: (this.text == '' && !this.useHashtag)
-					? undefined
-					: (this.useHashtag
-						? this.text + "\n" + this.hashtag
-						: this.text),
+				text: this.buildText(),
 				fileIds: this.files.length > 0 ? this.files.map(f => f.id) : undefined,
 				replyId: this.reply ? this.reply.id : undefined,
 				renoteId: this.renote ? this.renote.id : this.quoteId ? this.quoteId : undefined,
