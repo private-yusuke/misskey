@@ -34,7 +34,8 @@
 			</div>
 		</div>
 		<input v-show="useCw" ref="cw" class="cw" v-model="cw" :placeholder="$t('annotation')" v-autocomplete="{ model: 'cw' }">
-		<textarea v-model="text" class="text" :class="{ withCw: useCw }" ref="text" :disabled="posting" :placeholder="placeholder" v-autocomplete="{ model: 'text' }" @keydown="onKeydown" @paste="onPaste"></textarea>
+		<textarea v-model="text" class="text" :class="{ withCw: useCw, withHashtag: useHashtag }" ref="text" :disabled="posting" :placeholder="placeholder" v-autocomplete="{ model: 'text' }" @keydown="onKeydown" @paste="onPaste"></textarea>
+		<input v-show="useHashtag" ref="hashtag" class="hashtag" v-model="hashtag" :placeholder="$t('hashtagPlaceholder')" v-autocomplete="{ model: 'hashtag' }">
 		<x-post-form-attaches class="attaches" :files="files"/>
 		<x-poll-editor v-if="poll" ref="poll" @destroyed="poll = false" @updated="onPollUpdate()"/>
 		<x-uploader ref="uploader" @uploaded="attachMedia" @change="onChangeUploadings"/>
@@ -44,6 +45,7 @@
 			<button class="_button" @click="useCw = !useCw" :class="{ active: useCw }" v-tooltip="$t('useCw')"><fa :icon="faEyeSlash"/></button>
 			<button class="_button" @click="insertMention" v-tooltip="$t('mention')"><fa :icon="faAt"/></button>
 			<button class="_button" @click="insertEmoji" v-tooltip="$t('emoji')"><fa :icon="faLaughSquint"/></button>
+			<button class="_button" @click="useHashtag = !useHashtag" :class="{ active: useHashtag }" v-tooltip="$t('hashtag')"><fa :icon="faHashtag"/></button>
 		</footer>
 		<input ref="file" class="file _button" type="file" multiple="multiple" @change="onChangeFile"/>
 	</div>
@@ -52,7 +54,7 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { faReply, faQuoteRight, faPaperPlane, faTimes, faUpload, faPollH, faGlobe, faHome, faUnlock, faEnvelope, faPlus, faPhotoVideo, faCloud, faLink, faAt, faBiohazard } from '@fortawesome/free-solid-svg-icons';
+import { faReply, faQuoteRight, faPaperPlane, faTimes, faUpload, faPollH, faGlobe, faHome, faUnlock, faEnvelope, faPlus, faPhotoVideo, faCloud, faLink, faAt, faBiohazard, faHashtag } from '@fortawesome/free-solid-svg-icons';
 import { faEyeSlash, faLaughSquint } from '@fortawesome/free-regular-svg-icons';
 import insertTextAtCursor from 'insert-text-at-cursor';
 import { length } from 'stringz';
@@ -125,7 +127,9 @@ export default Vue.extend({
 			pollMultiple: false,
 			pollExpiration: [],
 			useCw: false,
+			useHashtag: false,
 			cw: null,
+			hashtag: '',
 			localOnly: false,
 			visibility: 'public',
 			visibleUsers: [],
@@ -133,7 +137,7 @@ export default Vue.extend({
 			draghover: false,
 			quoteId: null,
 			recentHashtags: JSON.parse(localStorage.getItem('hashtags') || '[]'),
-			faReply, faQuoteRight, faPaperPlane, faTimes, faUpload, faPollH, faGlobe, faHome, faUnlock, faEnvelope, faEyeSlash, faLaughSquint, faPlus, faPhotoVideo, faCloud, faLink, faAt, faBiohazard
+			faReply, faQuoteRight, faPaperPlane, faTimes, faUpload, faPollH, faGlobe, faHome, faUnlock, faEnvelope, faEyeSlash, faLaughSquint, faPlus, faPhotoVideo, faCloud, faLink, faAt, faBiohazard, faHashtag
 		};
 	},
 
@@ -279,6 +283,11 @@ export default Vue.extend({
 						});
 					}
 				}
+				const draft_hashtag = JSON.parse(localStorage.getItem('drafts') || '{}')['hashtag'];
+				if (draft_hashtag) {
+					this.useHashtag = draft_hashtag.useHashtag;
+					this.hashtag = draft_hashtag.hashtag;
+				}
 			}
 
 			// 削除して編集
@@ -315,6 +324,8 @@ export default Vue.extend({
 			this.$watch('files', () => this.saveDraft());
 			this.$watch('visibility', () => this.saveDraft());
 			this.$watch('localOnly', () => this.saveDraft());
+			this.$watch('useHashtag', () => this.saveDraft());
+			this.$watch('hashtag', () => this.saveDraft());
 		},
 
 		trimmedLength(text: string) {
@@ -521,6 +532,11 @@ export default Vue.extend({
 				}
 			};
 
+			data['hashtag'] = {
+				useHashtag: this.useHashtag,
+				hashtag: this.hashtag
+			};
+
 			localStorage.setItem('drafts', JSON.stringify(data));
 		},
 
@@ -532,10 +548,21 @@ export default Vue.extend({
 			localStorage.setItem('drafts', JSON.stringify(data));
 		},
 
+		buildText() {
+			let text = this.text;
+			if (this.useHashtag) {
+				text += "\n" + this.hashtag;
+			}
+			if (text === '') {
+				return undefined;
+			}
+			return text;
+		},
+		
 		post() {
 			this.posting = true;
 			this.$root.api('notes/create', {
-				text: this.text == '' ? undefined : this.text,
+				text: this.buildText(),
 				fileIds: this.files.length > 0 ? this.files.map(f => f.id) : undefined,
 				replyId: this.reply ? this.reply.id : undefined,
 				renoteId: this.renote ? this.renote.id : this.quoteId ? this.quoteId : undefined,
@@ -723,6 +750,7 @@ export default Vue.extend({
 		}
 
 		> .cw,
+		> .hashtag,
 		> .text {
 			display: block;
 			box-sizing: border-box;
@@ -755,6 +783,12 @@ export default Vue.extend({
 			border-bottom: solid 1px var(--divider);
 		}
 
+		> .hashtag {
+			border-top: solid 1px var(--divider);
+			padding-top: 8px;
+			padding-bottom: 8px;
+		}
+
 		> .text {
 			max-width: 100%;
 			min-width: 100%;
@@ -766,6 +800,10 @@ export default Vue.extend({
 
 			&.withCw {
 				padding-top: 8px;
+			}
+
+			&.withHashtag {
+				margin-bottom: 8px;
 			}
 		}
 
