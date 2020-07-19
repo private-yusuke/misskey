@@ -261,9 +261,7 @@ describe('MFM', () => {
 				assert.deepStrictEqual(tokens, [
 					tree('spin', [
 						text('foo')
-					], {
-						attr: null
-					}),
+					], {}),
 				]);
 			});
 
@@ -272,9 +270,7 @@ describe('MFM', () => {
 				assert.deepStrictEqual(tokens, [
 					tree('spin', [
 						leaf('emoji', { name: 'foo' })
-					], {
-						attr: null
-					}),
+					], {}),
 				]);
 			});
 
@@ -284,24 +280,20 @@ describe('MFM', () => {
 					tree('spin', [
 						leaf('emoji', { name: 'foo' })
 					], {
-						attr: 'left'
+						attrs: ['left']
 					}),
 				]);
 			});
-/*
+
 			it('multi', () => {
 				const tokens = parse('<spin>:foo:</spin><spin>:foo:</spin>');
 				assert.deepStrictEqual(tokens, [
 					tree('spin', [
 						leaf('emoji', { name: 'foo' })
-					], {
-						attr: null
-					}),
+					], {}),
 					tree('spin', [
 						leaf('emoji', { name: 'foo' })
-					], {
-						attr: null
-					}),
+					], {}),
 				]);
 			});
 
@@ -311,15 +303,10 @@ describe('MFM', () => {
 					tree('spin', [
 						tree('spin', [
 							leaf('emoji', { name: 'foo' })
-						], {
-							attr: null
-						}),
-					], {
-						attr: null
-					}),
+						], {}),
+					], {}),
 				]);
 			});
-*/
 		});
 
 		it('jump', () => {
@@ -1321,6 +1308,9 @@ describe('MFM', () => {
 		});
 		it('回転', () => {
 			assert.deepStrictEqual(toString(parse('<spin>回転</spin>')), '<spin>回転</spin>');
+		});
+		it('回転 ネスト', () => {
+			assert.deepStrictEqual(toString(parse('<spin><spin>回転</spin></spin>')), '<spin><spin>回転</spin></spin>');
 		});
 		it('右回転', () => {
 			assert.deepStrictEqual(toString(parse('<spin right>右回転</spin>')), '<spin right>右回転</spin>');
