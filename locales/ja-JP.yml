@@ -517,6 +517,7 @@ enableInfiniteScroll: "自動でもっと見る"
 visibility: "公開範囲"
 poll: "アンケート"
 useCw: "内容を隠す"
+timestampFormat: "タイムスタンプの形式"
 
 _theme:
   explore: "テーマを探す"

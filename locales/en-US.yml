@@ -518,6 +518,8 @@ enableInfiniteScroll: "Enable infinite scrolling"
 visibility: "Visiblility"
 poll: "Poll"
 useCw: "Hide content"
+timestampFormat: "Timestamp Format"
+
 _theme:
   explore: "Explore Themes"
   install: "Install theme"
