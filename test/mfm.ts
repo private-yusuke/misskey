@@ -255,6 +255,60 @@ describe('MFM', () => {
 			]);
 		});
 
+		describe('animate', () => {
+			it('text', () => {
+				const tokens = parse('<animate>foo</animate>');
+				assert.deepStrictEqual(tokens, [
+					tree('animate', [
+						text('foo')
+					], {}),
+				]);
+			});
+
+			it('emoji', () => {
+				const tokens = parse('<animate>:foo:</animate>');
+				assert.deepStrictEqual(tokens, [
+					tree('animate', [
+						leaf('emoji', { name: 'foo' })
+					], {}),
+				]);
+			});
+
+			it('with attr', () => {
+				const tokens = parse('<animate jello>:foo:</animate>');
+				assert.deepStrictEqual(tokens, [
+					tree('animate', [
+						leaf('emoji', { name: 'foo' })
+					], {
+						attrs: ['jello']
+					}),
+				]);
+			});
+
+			it('multi', () => {
+				const tokens = parse('<animate>:foo:</animate><animate>:foo:</animate>');
+				assert.deepStrictEqual(tokens, [
+					tree('animate', [
+						leaf('emoji', { name: 'foo' })
+					], {}),
+					tree('animate', [
+						leaf('emoji', { name: 'foo' })
+					], {}),
+				]);
+			});
+
+			it('nested', () => {
+				const tokens = parse('<animate><animate>:foo:</animate></animate>');
+				assert.deepStrictEqual(tokens, [
+					tree('animate', [
+						tree('animate', [
+							leaf('emoji', { name: 'foo' })
+						], {}),
+					], {}),
+				]);
+			});
+		});
+
 		describe('spin', () => {
 			it('text', () => {
 				const tokens = parse('<spin>foo</spin>');
@@ -1371,6 +1425,12 @@ describe('MFM', () => {
 		});
 		it('ビッグ＋', () => {
 			assert.deepStrictEqual(toString(parse('*** ビッグ＋ ***')), '*** ビッグ＋ ***');
+		});
+		it('アニメーション', () => {
+			assert.deepStrictEqual(toString(parse('<animate>アニメーション</animate>')), '<animate>アニメーション</animate>');
+		});
+		it('揺れるアニメーション', () => {
+			assert.deepStrictEqual(toString(parse('<animate wobble>アニメーション</animate>')), '<animate wobble>アニメーション</animate>');
 		});
 		it('回転', () => {
 			assert.deepStrictEqual(toString(parse('<spin>回転</spin>')), '<spin>回転</spin>');

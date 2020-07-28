@@ -126,6 +126,34 @@ export default Vue.component('misskey-flavored-markdown', {
 					}, genEl(token.children));
 				}
 
+				case 'animate': {
+					const animations =
+						[ 'bounce'
+						, 'flash'
+						, 'pulse'
+						, 'rubberBand'
+						, 'headShake'
+						, 'swing'
+						, 'tada'
+						, 'wobble'
+						, 'jello'
+						, 'flip'
+						];
+					const attrs = token.node.props.attrs || [];
+					const animation = attrs.length > 0 ? attrs[0] : animations[Math.floor(animations.length * Math.random())];
+					const iteration = attrs.length > 1 ? attrs[1] : 'infinite';
+
+					return (createElement as any)('span', {
+						attrs: {
+							style: 'display: inline-block;'
+						},
+						directives: [this.$store.state.device.animatedMfm ? {
+							name: 'animate-css',
+							value: { classes: animation, iteration }
+						} : {}]
+					}, genEl(token.children));
+				}
+
 				case 'spin': {
 					const attrs = token.node.props.attrs || [];
 					const direction = attrs.length > 0 ? toDirection(attrs[0]) : 'normal';

@@ -85,6 +85,7 @@ export const mfmLanguage = P.createLanguage({
 		r.italic,
 		r.strike,
 		r.motion,
+		r.animate,
 		r.spin,
 		r.jump,
 		r.flip,
@@ -123,6 +124,7 @@ export const mfmLanguage = P.createLanguage({
 		const xml = tag(r, 'motion');
 		return P.alt(paren, xml);
 	},
+	animate: r => tag(r, 'animate'),
 	spin: r => tag(r, 'spin'),
 	jump: r => tag(r, 'jump'),
 	flip: r => tag(r, 'flip'),
