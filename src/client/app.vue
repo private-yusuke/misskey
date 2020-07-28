@@ -57,9 +57,12 @@
 					</component>
 				</template>
 				<div class="divider"></div>
-				<button class="item _button" :class="{ active: $route.path === '/instance' || $route.path.startsWith('/instance/') }" v-if="$store.getters.isSignedIn && ($store.state.i.isAdmin || $store.state.i.isModerator)" @click="oepnInstanceMenu">
+				<button class="item _button" :class="{ active: $route.path === '/instance' || ($route.path.startsWith('/instance/') && !($route.path === '/instance/emojis')) }" v-if="$store.getters.isSignedIn && ($store.state.i.isAdmin || $store.state.i.isModerator)" @click="oepnInstanceMenu">
 					<fa :icon="faServer" fixed-width/><span class="text">{{ $t('instance') }}</span>
 				</button>
+				<router-link class="item" active-class="active" to="/instance/emojis" v-if="$store.getters.isSignedIn">
+					<fa :icon="faLaugh" fixed-width/><span class="text">{{ $t('customEmojis') }}</span>
+				</router-link>
 				<button class="item _button" @click="more">
 					<fa :icon="faEllipsisH" fixed-width/><span class="text">{{ $t('more') }}</span>
 					<i v-if="otherNavItemIndicated"><fa :icon="faCircle"/></i>

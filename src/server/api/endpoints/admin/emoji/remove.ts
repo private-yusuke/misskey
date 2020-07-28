@@ -14,7 +14,6 @@ export const meta = {
 	tags: ['admin'],
 
 	requireCredential: true as const,
-	requireModerator: true,
 
 	params: {
 		id: {
