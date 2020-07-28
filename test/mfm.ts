@@ -309,6 +309,72 @@ describe('MFM', () => {
 			});
 		});
 
+		describe('slide', () => {
+			it('text', () => {
+				const tokens = parse('<slide>foo</slide>');
+				assert.deepStrictEqual(tokens, [
+					tree('slide', [
+						text('foo')
+					], {}),
+				]);
+			});
+
+			it('emoji', () => {
+				const tokens = parse('<slide>:foo:</slide>');
+				assert.deepStrictEqual(tokens, [
+					tree('slide', [
+						leaf('emoji', { name: 'foo' })
+					], {}),
+				]);
+			});
+
+			it('with attr', () => {
+				const tokens = parse('<slide left>:foo:</slide>');
+				assert.deepStrictEqual(tokens, [
+					tree('slide', [
+						leaf('emoji', { name: 'foo' })
+					], {
+						attrs: ['left']
+					}),
+				]);
+			});
+
+			it('with attrs', () => {
+				const tokens = parse('<slide left 1.5s>:foo:</slide>');
+				assert.deepStrictEqual(tokens, [
+					tree('slide', [
+						leaf('emoji', { name: 'foo' })
+					], {
+						attrs: ['left', '1.5s']
+					}),
+				]);
+			});
+
+			it('multi', () => {
+				const tokens = parse('<slide>:foo:</slide><slide>:foo:</slide>');
+				assert.deepStrictEqual(tokens, [
+					tree('slide', [
+						leaf('emoji', { name: 'foo' })
+					], {}),
+					tree('slide', [
+						leaf('emoji', { name: 'foo' })
+					], {}),
+				]);
+			});
+
+			it('nested', () => {
+				const tokens = parse('<slide><slide>:foo:</slide></slide>');
+				assert.deepStrictEqual(tokens, [
+					tree('slide', [
+						tree('slide', [
+							leaf('emoji', { name: 'foo' })
+						], {}),
+					], {}),
+				]);
+			});
+		});
+
+
 		it('jump', () => {
 			const tokens = parse('<jump>:foo:</jump>');
 			assert.deepStrictEqual(tokens, [
@@ -1323,6 +1389,21 @@ describe('MFM', () => {
 		});
 		it('ジャンプ', () => {
 			assert.deepStrictEqual(toString(parse('<jump>ジャンプ</jump>')), '<jump>ジャンプ</jump>');
+		});
+		it('スライド', () => {
+			assert.deepStrictEqual(toString(parse('<slide>スライド</slide>')), '<slide>スライド</slide>');
+		});
+		it('スライド ネスト', () => {
+			assert.deepStrictEqual(toString(parse('<slide><slide>スライド</slide></slide>')), '<slide><slide>スライド</slide></slide>');
+		});
+		it('右スライド', () => {
+			assert.deepStrictEqual(toString(parse('<slide right>右スライド</slide>')), '<slide right>右スライド</slide>');
+		});
+		it('左スライド', () => {
+			assert.deepStrictEqual(toString(parse('<slide left>左スライド</slide>')), '<slide left>左スライド</slide>');
+		});
+		it('往復スライド', () => {
+			assert.deepStrictEqual(toString(parse('<slide alternate>往復スライド</slide>')), '<slide alternate>往復スライド</slide>');
 		});
 		it('コードブロック', () => {
 			assert.deepStrictEqual(toString(parse('```\nコードブロック\n```')), '```\nコードブロック\n```');
