@@ -73,7 +73,7 @@
 		<div class="_content">
 			<mk-select v-model="timestampFormat">
 				<template #label>{{ $t('timestampFormat') }}</template>
-				<option v-for="tf in timestampFormats" :value="tf" :key="tf">{{ tf }}</option>
+				<option v-for="tf in timestampFormats" :value="tf" :key="tf">{{ $t('_timestampFormats.' + tf) }}</option>
 			</mk-select>
 		</div>
 		<div class="_content">

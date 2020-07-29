@@ -1128,3 +1128,7 @@ _notification:
   yourFollowRequestAccepted: "フォローリクエストが承認されました"
   youWereInvitedToGroup: "グループに招待されました"
 
+_timestampFormats:
+  relative: 相対
+  absolute: 絶対
+  detail: 絶対 + 相対

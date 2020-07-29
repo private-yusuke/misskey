@@ -1095,3 +1095,7 @@ _notification:
   yourFollowRequestAccepted: "Your follow request was accepted"
   youWereInvitedToGroup: "Invited to group"
 
+_timestampFormats:
+  relative: Relative
+  absolute: Absolute
+  detail: Absolute + Relative
