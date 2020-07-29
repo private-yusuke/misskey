@@ -19,6 +19,7 @@ export const defaultSettings = {
 	memo: null,
 	reactions: ['👍', '❤️', '😆', '🤔', '😮', '🎉', '💢', '😥', '😇', '🍮'],
 	mutedWords: [],
+	timestampFormat: "relative",
 };
 
 export const defaultDeviceUserSettings = {
