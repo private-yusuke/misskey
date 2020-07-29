@@ -14,14 +14,15 @@
 		<hr v-if="showNext"/>
 
 		<mk-remote-caution v-if="note.user.host != null" :href="note.url || note.uri" style="margin-bottom: var(--margin)"/>
-		<x-note :note="note" :key="note.id" :detail="true"/>
-		<div v-if="error">
-			<mk-error @retry="fetch()"/>
-		</div>
+		<x-note v-model="note" :key="note.id" :detail="true"/>
 
 		<button class="_panel _button" v-if="hasPrev && !showPrev" @click="showPrev = true" style="margin: var(--margin) auto 0 auto;"><fa :icon="faChevronDown"/></button>
 		<hr v-if="showPrev"/>
 		<x-notes v-if="showPrev" ref="prev" :pagination="prev" style="margin-top: var(--margin);"/>
+	</div>
+
+	<div v-if="error">
+		<mk-error @retry="fetch()"/>
 	</div>
 </div>
 </template>

@@ -13,7 +13,7 @@ export default (opts) => ({
 			moreFetching: false,
 			inited: false,
 			more: false,
-			backed: false,
+			backed: false, // 遡り中か否か
 			isBackTop: false,
 			ilObserver: new IntersectionObserver(
 				(entries) => entries.some((entry) => entry.isIntersecting)
@@ -22,7 +22,6 @@ export default (opts) => ({
 					&& this.fetchMore()
 				),
 			loadMoreElement: null as Element,
-			unsubscribeInfiniteScrollMutation: null as any,
 		};
 	},
 
@@ -65,13 +64,6 @@ export default (opts) => ({
 				this.loadMoreElement = this.$refs.loadMore instanceof Element ? this.$refs.loadMore : this.$refs.loadMore.$el;
 				if (this.$store.state.device.enableInfiniteScroll) this.ilObserver.observe(this.loadMoreElement);
 				this.loadMoreElement.addEventListener('click', this.fetchMore);
-
-				this.unsubscribeInfiniteScrollMutation = this.$store.subscribe(mutation => {
-					if (mutation.type !== 'device/setInfiniteScrollEnabling') return;
-
-					if (mutation.payload) return this.ilObserver.observe(this.loadMoreElement);
-					return this.ilObserver.unobserve(this.loadMoreElement);
-				});
 			}
 		});
 	},
@@ -79,14 +71,9 @@ export default (opts) => ({
 	beforeDestroy() {
 		this.ilObserver.disconnect();
 		if (this.$refs.loadMore) this.loadMoreElement.removeEventListener('click', this.fetchMore);
-		if (this.unsubscribeInfiniteScrollMutation) this.unsubscribeInfiniteScrollMutation();
 	},
 
 	methods: {
-		updateItem(i, item) {
-			Vue.set((this as any).items, i, item);
-		},
-
 		reload() {
 			this.items = [];
 			this.init();
@@ -103,6 +90,9 @@ export default (opts) => ({
 				...params,
 				limit: this.pagination.noPaging ? (this.pagination.limit || 10) : (this.pagination.limit || 10) + 1,
 			}).then(items => {
+				for (const item of items) {
+					Object.freeze(item);
+				}
 				if (!this.pagination.noPaging && (items.length > (this.pagination.limit || 10))) {
 					items.pop();
 					this.items = this.pagination.reversed ? [...items].reverse() : items;
@@ -139,6 +129,9 @@ export default (opts) => ({
 					untilId: this.items[this.items.length - 1].id,
 				}),
 			}).then(items => {
+				for (const item of items) {
+					Object.freeze(item);
+				}
 				if (items.length > SECOND_FETCH_LIMIT) {
 					items.pop();
 					this.items = this.pagination.reversed ? [...items].reverse().concat(this.items) : this.items.concat(items);

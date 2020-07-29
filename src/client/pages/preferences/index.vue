@@ -9,6 +9,8 @@
 
 	<x-sidebar/>
 
+	<x-plugins/>
+
 	<section class="_card">
 		<div class="_title"><fa :icon="faMusic"/> {{ $t('sounds') }}</div>
 		<div class="_content">
@@ -52,7 +54,41 @@
 	</section>
 
 	<section class="_card">
-		<div class="_title"><fa :icon="faCog"/> {{ $t('accessibility') }}</div>
+		<div class="_title"><fa :icon="faColumns"/> {{ $t('deck') }}</div>
+		<div class="_content">
+			<mk-switch v-model="deckAlwaysShowMainColumn">
+				{{ $t('_deck.alwaysShowMainColumn') }}
+			</mk-switch>
+		</div>
+		<div class="_content">
+			<div>{{ $t('_deck.columnAlign') }}</div>
+			<mk-radio v-model="deckColumnAlign" value="left">{{ $t('left') }}</mk-radio>
+			<mk-radio v-model="deckColumnAlign" value="center">{{ $t('center') }}</mk-radio>
+		</div>
+	</section>
+
+	<section class="_card">
+		<div class="_title"><fa :icon="faCog"/> {{ $t('appearance') }}</div>
+		<div class="_content">
+			<mk-switch v-model="disableAnimatedMfm">{{ $t('disableAnimatedMfm') }}</mk-switch>
+			<mk-switch v-model="reduceAnimation">{{ $t('reduceUiAnimation') }}</mk-switch>
+			<mk-switch v-model="useBlurEffectForModal">{{ $t('useBlurEffectForModal') }}</mk-switch>
+			<mk-switch v-model="useOsNativeEmojis">
+				{{ $t('useOsNativeEmojis') }}
+				<template #desc><mfm text="🍮🍦🍭🍩🍰🍫🍬🥞🍪"/></template>
+			</mk-switch>
+		</div>
+		<div class="_content">
+			<div>{{ $t('fontSize') }}</div>
+			<mk-radio v-model="fontSize" value="small"><span style="font-size: 14px;">Aa</span></mk-radio>
+			<mk-radio v-model="fontSize" :value="null"><span style="font-size: 16px;">Aa</span></mk-radio>
+			<mk-radio v-model="fontSize" value="large"><span style="font-size: 18px;">Aa</span></mk-radio>
+			<mk-radio v-model="fontSize" value="veryLarge"><span style="font-size: 20px;">Aa</span></mk-radio>
+		</div>
+	</section>
+
+	<section class="_card">
+		<div class="_title"><fa :icon="faCog"/> {{ $t('general') }}</div>
 		<div class="_content">
 			<mk-switch v-model="autoReload">
 				{{ $t('autoReloadWhenDisconnected') }}
@@ -60,14 +96,9 @@
 		</div>
 		<div class="_content">
 			<mk-switch v-model="imageNewTab">{{ $t('openImageInNewTab') }}</mk-switch>
-			<mk-switch v-model="disableAnimatedMfm">{{ $t('disableAnimatedMfm') }}</mk-switch>
-			<mk-switch v-model="reduceAnimation">{{ $t('reduceUiAnimation') }}</mk-switch>
-			<mk-switch v-model="useOsNativeEmojis">
-				{{ $t('useOsNativeEmojis') }}
-				<template #desc><mfm text="🍮🍦🍭🍩🍰🍫🍬🥞🍪"/></template>
-			</mk-switch>
 			<mk-switch v-model="showFixedPostForm">{{ $t('showFixedPostForm') }}</mk-switch>
 			<mk-switch v-model="enableInfiniteScroll">{{ $t('enableInfiniteScroll') }}</mk-switch>
+			<mk-switch v-model="fixedWidgetsPosition">{{ $t('fixedWidgetsPosition') }}</mk-switch>
 			<mk-switch v-model="disablePagesScript">{{ $t('disablePagesScript') }}</mk-switch>
 		</div>
 		<div class="_content">
@@ -83,13 +114,6 @@
 				<option v-for="x in langs" :value="x[0]" :key="x[0]">{{ x[1] }}</option>
 			</mk-select>
 		</div>
-		<div class="_content">
-			<div>{{ $t('fontSize') }}</div>
-			<mk-radio v-model="fontSize" value="small"><span style="font-size: 14px;">Aa</span></mk-radio>
-			<mk-radio v-model="fontSize" :value="null"><span style="font-size: 16px;">Aa</span></mk-radio>
-			<mk-radio v-model="fontSize" value="large"><span style="font-size: 18px;">Aa</span></mk-radio>
-			<mk-radio v-model="fontSize" value="veryLarge"><span style="font-size: 20px;">Aa</span></mk-radio>
-		</div>
 	</section>
 
 	<mk-button @click="cacheClear()" primary style="margin: var(--margin) auto;">{{ $t('cacheClear') }}</mk-button>
@@ -98,7 +122,7 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { faImage, faCog, faMusic, faPlay, faVolumeUp, faVolumeMute } from '@fortawesome/free-solid-svg-icons';
+import { faImage, faCog, faMusic, faPlay, faVolumeUp, faVolumeMute, faColumns } from '@fortawesome/free-solid-svg-icons';
 import MkButton from '../../components/ui/button.vue';
 import MkSwitch from '../../components/ui/switch.vue';
 import MkSelect from '../../components/ui/select.vue';
@@ -106,6 +130,7 @@ import MkRadio from '../../components/ui/radio.vue';
 import MkRange from '../../components/ui/range.vue';
 import XTheme from './theme.vue';
 import XSidebar from './sidebar.vue';
+import XPlugins from './plugins.vue';
 import { langs } from '../../config';
 import { clientDb, set } from '../../db';
 
@@ -120,6 +145,9 @@ const sounds = [
 	'syuilo/triple',
 	'syuilo/poi1',
 	'syuilo/poi2',
+	'syuilo/pirori',
+	'syuilo/pirori-wet',
+	'syuilo/pirori-square-wet',
 	'aisha/1',
 	'aisha/2',
 	'aisha/3',
@@ -142,11 +170,12 @@ export default Vue.extend({
 	components: {
 		XTheme,
 		XSidebar,
+		XPlugins,
 		MkButton,
 		MkSwitch,
 		MkSelect,
 		MkRadio,
-		MkRange
+		MkRange,
 	},
 
 	data() {
@@ -156,7 +185,7 @@ export default Vue.extend({
 			fontSize: localStorage.getItem('fontSize'),
 			sounds,
 			timestampFormats,
-			faImage, faCog, faMusic, faPlay, faVolumeUp, faVolumeMute
+			faImage, faCog, faMusic, faPlay, faVolumeUp, faVolumeMute, faColumns
 		}
 	},
 
@@ -169,6 +198,11 @@ export default Vue.extend({
 		reduceAnimation: {
 			get() { return !this.$store.state.device.animation; },
 			set(value) { this.$store.commit('device/set', { key: 'animation', value: !value }); }
+		},
+
+		useBlurEffectForModal: {
+			get() { return this.$store.state.device.useBlurEffectForModal; },
+			set(value) { this.$store.commit('device/set', { key: 'useBlurEffectForModal', value: value }); }
 		},
 
 		disableAnimatedMfm: {
@@ -198,7 +232,22 @@ export default Vue.extend({
 
 		enableInfiniteScroll: {
 			get() { return this.$store.state.device.enableInfiniteScroll; },
-			set(value) { this.$store.commit('device/setInfiniteScrollEnabling', value); }
+			set(value) { this.$store.commit('device/set', { key: 'enableInfiniteScroll', value }); }
+		},
+
+		fixedWidgetsPosition: {
+			get() { return this.$store.state.device.fixedWidgetsPosition; },
+			set(value) { this.$store.commit('device/set', { key: 'fixedWidgetsPosition', value }); }
+		},
+
+		deckAlwaysShowMainColumn: {
+			get() { return this.$store.state.device.deckAlwaysShowMainColumn; },
+			set(value) { this.$store.commit('device/set', { key: 'deckAlwaysShowMainColumn', value }); }
+		},
+
+		deckColumnAlign: {
+			get() { return this.$store.state.device.deckColumnAlign; },
+			set(value) { this.$store.commit('device/set', { key: 'deckColumnAlign', value }); }
 		},
 
 		sfxVolume: {
@@ -276,6 +325,14 @@ export default Vue.extend({
 				localStorage.setItem('fontSize', this.fontSize);
 			}
 			location.reload();
+		},
+
+		fixedWidgetsPosition() {
+			location.reload()
+		},
+
+		enableInfiniteScroll() {
+			location.reload()
 		},
 	},
 
