@@ -102,6 +102,10 @@ export default Vue.extend({
 		> .localOnly {
 			margin-left: 8px;
 		}
+
+		> .created-at {
+			-webkit-touch-callout: none;
+		}
 	}
 }
 </style>
