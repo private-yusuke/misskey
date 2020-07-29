@@ -19,7 +19,6 @@ export const defaultSettings = {
 	memo: null,
 	reactions: ['👍', '❤️', '😆', '🤔', '😮', '🎉', '💢', '😥', '😇', '🍮'],
 	mutedWords: [],
-	timestampFormat: "relative",
 };
 
 export const defaultDeviceUserSettings = {
@@ -90,6 +89,7 @@ export const defaultDeviceSettings = {
 	sfxChat: 'syuilo/pope1',
 	sfxChatBg: 'syuilo/waon',
 	sfxAntenna: 'syuilo/triple',
+	timestampFormat: 'relative',
 	userData: {},
 };
 
