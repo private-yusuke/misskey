@@ -52,7 +52,7 @@
 			</dl>
 			<dl class="field">
 				<dt class="name"><fa :icon="faCalendarAlt" fixed-width/> {{ $t('registeredDate') }}</dt>
-				<dd class="value">{{ new Date(user.createdAt).toLocaleString() }} (<mk-time :time="user.createdAt"/>)</dd>
+				<dd class="value">{{ new Date(user.createdAt).toLocaleString() }} (<mk-time :time="user.createdAt" mode="relative"/>)</dd>
 			</dl>
 		</div>
 		<div class="fields" v-if="user.fields.length > 0">

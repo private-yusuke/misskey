@@ -517,6 +517,7 @@ enableInfiniteScroll: "自動でもっと見る"
 visibility: "公開範囲"
 poll: "アンケート"
 useCw: "内容を隠す"
+timestampFormat: "タイムスタンプの形式"
 
 _theme:
   explore: "テーマを探す"
@@ -1127,3 +1128,7 @@ _notification:
   yourFollowRequestAccepted: "フォローリクエストが承認されました"
   youWereInvitedToGroup: "グループに招待されました"
 
+_timestampFormats:
+  relative: 相対
+  absolute: 絶対
+  detail: 絶対 + 相対

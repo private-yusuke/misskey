@@ -518,6 +518,8 @@ enableInfiniteScroll: "Enable infinite scrolling"
 visibility: "Visiblility"
 poll: "Poll"
 useCw: "Hide content"
+timestampFormat: "Timestamp Format"
+
 _theme:
   explore: "Explore Themes"
   install: "Install theme"
@@ -1093,3 +1095,7 @@ _notification:
   yourFollowRequestAccepted: "Your follow request was accepted"
   youWereInvitedToGroup: "Invited to group"
 
+_timestampFormats:
+  relative: Relative
+  absolute: Absolute
+  detail: Absolute + Relative

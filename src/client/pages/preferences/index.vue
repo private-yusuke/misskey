@@ -71,6 +71,12 @@
 			<mk-switch v-model="disablePagesScript">{{ $t('disablePagesScript') }}</mk-switch>
 		</div>
 		<div class="_content">
+			<mk-select v-model="timestampFormat">
+				<template #label>{{ $t('timestampFormat') }}</template>
+				<option v-for="tf in timestampFormats" :value="tf" :key="tf">{{ $t('_timestampFormats.' + tf) }}</option>
+			</mk-select>
+		</div>
+		<div class="_content">
 			<mk-select v-model="lang">
 				<template #label>{{ $t('uiLanguage') }}</template>
 
@@ -120,6 +126,12 @@ const sounds = [
 	'noizenecio/kick_gaba',
 ];
 
+const timestampFormats = [
+	'relative',
+	'absolute',
+	'detail'
+];
+
 export default Vue.extend({
 	metaInfo() {
 		return {
@@ -143,6 +155,7 @@ export default Vue.extend({
 			lang: localStorage.getItem('lang'),
 			fontSize: localStorage.getItem('fontSize'),
 			sounds,
+			timestampFormats,
 			faImage, faCog, faMusic, faPlay, faVolumeUp, faVolumeMute
 		}
 	},
@@ -227,6 +240,11 @@ export default Vue.extend({
 			get() {
 				return this.sfxVolume === 0 ? faVolumeMute : faVolumeUp;
 			}
+		},
+
+		timestampFormat: {
+			get() { return this.$store.state.device.timestampFormat; },
+			set(value) { this.$store.commit('device/set', { key: 'timestampFormat', value }); }
 		}
 	},
 
