@@ -17,7 +17,13 @@ export default Vue.extend({
 		},
 		mode: {
 			type: String,
-			default: 'relative'
+			default: function(m: string) {
+				if (m === undefined) {
+					return this.$store.state.device.timestampFormat;
+				} else {
+					return m;
+				}
+			}
 		}
 	},
 	data() {

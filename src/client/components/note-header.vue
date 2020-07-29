@@ -10,7 +10,7 @@
 	<div class="info">
 		<span class="mobile" v-if="note.viaMobile"><fa :icon="faMobileAlt"/></span>
 		<router-link class="created-at" :to="note | notePage">
-			<mk-time :time="note.createdAt" :mode="$store.state.device.timestampFormat"/>
+			<mk-time :time="note.createdAt"/>
 		</router-link>
 		<span class="visibility" v-if="note.visibility !== 'public'">
 			<fa v-if="note.visibility === 'home'" :icon="faHome"/>
