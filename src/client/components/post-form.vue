@@ -71,6 +71,7 @@ import getAcct from '../../misc/acct/render';
 import { formatTimeString } from '../../misc/format-time-string';
 import { selectDriveFile } from '../scripts/select-drive-file';
 import { noteVisibilities } from '../../types';
+import { utils } from '@syuilo/aiscript';
 
 export default Vue.extend({
 	components: {
@@ -559,10 +560,9 @@ export default Vue.extend({
 			}
 			return text;
 		},
-		
-		post() {
-			this.posting = true;
-			this.$root.api('notes/create', {
+
+		async post() {
+			let data = {
 				text: this.buildText(),
 				fileIds: this.files.length > 0 ? this.files.map(f => f.id) : undefined,
 				replyId: this.reply ? this.reply.id : undefined,
@@ -573,7 +573,17 @@ export default Vue.extend({
 				visibility: this.visibility,
 				visibleUserIds: this.visibility == 'specified' ? this.visibleUsers.map(u => u.id) : undefined,
 				viaMobile: this.$root.isMobile
-			}).then(data => {
+			};
+
+			// plugin
+			if (this.$store.state.notePostInterruptors.length > 0) {
+				for (const interruptor of this.$store.state.notePostInterruptors) {
+					data = utils.valToJs(await interruptor.handler(JSON.parse(JSON.stringify(data))));
+				}
+			}
+
+			this.posting = true;
+			this.$root.api('notes/create', data).then(() => {
 				this.clear();
 				this.deleteDraft();
 				this.$emit('posted');

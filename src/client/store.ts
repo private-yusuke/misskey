@@ -113,6 +113,7 @@ export default () => new Vuex.Store({
 		userActions: [],
 		noteActions: [],
 		noteViewInterruptors: [],
+		notePostInterruptors: [],
 	},
 
 	getters: {
@@ -279,6 +280,14 @@ export default () => new Vuex.Store({
 
 		registerNoteViewInterruptor(state, { pluginId, handler }) {
 			state.noteViewInterruptors.push({
+				handler: (note) => {
+					return state.pluginContexts.get(pluginId).execFn(handler, [utils.jsToVal(note)]);
+				}
+			});
+		},
+
+		registerNotePostInterruptor(state, { pluginId, handler }) {
+			state.notePostInterruptors.push({
 				handler: (note) => {
 					return state.pluginContexts.get(pluginId).execFn(handler, [utils.jsToVal(note)]);
 				}
@@ -605,9 +614,10 @@ export default () => new Vuex.Store({
 				},
 				//#endregion
 
-				installPlugin(state, { meta, ast, token }) {
+				installPlugin(state, { id, meta, ast, token }) {
 					state.plugins.push({
 						...meta,
+						id,
 						active: true,
 						configData: {},
 						token: token,
