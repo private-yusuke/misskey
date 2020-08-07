@@ -446,6 +446,7 @@ export default Vue.extend({
 		},
 
 		onKeydown(e) {
+			if (e.which === 27 && this.$store.state.device.showFixedPostForm) this.$refs.text.blur();
 			if ((e.which == 10 || e.which == 13) && (e.ctrlKey || e.metaKey) && this.canPost) this.post();
 		},
 
