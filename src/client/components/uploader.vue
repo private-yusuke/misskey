@@ -45,6 +45,7 @@ export default Vue.extend({
 		},
 
 		upload(file: File, folder: any, name?: string) {
+			this.$emit("changeUploading", true);
 			if (folder && typeof folder == 'object') folder = folder.id;
 
 			const id = Math.random();

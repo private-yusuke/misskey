@@ -38,7 +38,7 @@
 		<input v-show="useHashtag" ref="hashtag" class="hashtag" v-model="hashtag" :placeholder="$t('hashtagPlaceholder')" v-autocomplete="{ model: 'hashtag' }">
 		<x-post-form-attaches class="attaches" :files="files"/>
 		<x-poll-editor v-if="poll" ref="poll" @destroyed="poll = false" @updated="onPollUpdate()"/>
-		<x-uploader ref="uploader" @uploaded="attachMedia" @change="onChangeUploadings"/>
+		<x-uploader ref="uploader" @uploaded="attachMedia" @change="onChangeUploadings" @changeUploading="uploading = $event"/>
 		<footer>
 			<button class="_button" @click="chooseFileFrom" v-tooltip="$t('attachFile')"><fa :icon="faPhotoVideo"/></button>
 			<button class="_button" @click="poll = !poll" :class="{ active: poll }" v-tooltip="$t('poll')"><fa :icon="faPollH"/></button>
@@ -121,6 +121,7 @@ export default Vue.extend({
 	data() {
 		return {
 			posting: false,
+			uploading: false,
 			text: '',
 			files: [],
 			uploadings: [],
@@ -180,6 +181,7 @@ export default Vue.extend({
 
 		canPost(): boolean {
 			return !this.posting &&
+				!this.uploading &&
 				(1 <= this.text.length || 1 <= this.files.length || this.poll || this.renote) &&
 				(length(this.text.trim()) <= this.max) &&
 				(!this.poll || this.pollChoices.length >= 2);
@@ -398,6 +400,7 @@ export default Vue.extend({
 
 		onChangeUploadings(uploads) {
 			this.$emit('change-uploadings', uploads);
+			if (uploads.length == 0) this.uploading = false;
 		},
 
 		onPollUpdate() {
