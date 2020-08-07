@@ -18,6 +18,7 @@ services:
       - .config/docker_web.env
     volumes:
       - ./files:/misskey/files
+      - ./.config:/misskey/.config:ro
 
   redis:
     restart: always
