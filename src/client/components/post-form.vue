@@ -121,6 +121,7 @@ export default Vue.extend({
 	data() {
 		return {
 			posting: false,
+			uploading: false,
 			text: '',
 			files: [],
 			uploadings: [],
@@ -180,6 +181,7 @@ export default Vue.extend({
 
 		canPost(): boolean {
 			return !this.posting &&
+				!this.uploading &&
 				(1 <= this.text.length || 1 <= this.files.length || this.poll || this.renote) &&
 				(length(this.text.trim()) <= this.max) &&
 				(!this.poll || this.pollChoices.length >= 2);
@@ -398,6 +400,7 @@ export default Vue.extend({
 
 		onChangeUploadings(uploads) {
 			this.$emit('change-uploadings', uploads);
+			this.uploading = uploads.length > 0;
 		},
 
 		onPollUpdate() {
