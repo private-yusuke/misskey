@@ -11,6 +11,7 @@ elasticsearch/
 node_modules/
 redis/
 files
+.config
 
 .devcontainer
 docker-compose.dev.yml
