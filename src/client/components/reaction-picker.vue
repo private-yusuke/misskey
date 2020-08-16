@@ -76,7 +76,7 @@ export default Vue.extend({
 
 	mounted() {
 		this.focus = 0;
-		this.$nextTick(() => this.$refs.textEmojiName.focus());
+		if (this.$store.state.device.enableFocusReactionEmojiInput) this.$nextTick(() => this.$refs.textEmojiName.focus());
 	},
 
 	methods: {
