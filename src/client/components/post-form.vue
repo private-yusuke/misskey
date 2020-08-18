@@ -594,9 +594,7 @@ export default Vue.extend({
 			}).catch(err => {
 			}).then(() => {
 				this.posting = false;
-				this.$nextTick(() => {
-					this.focus();
-				});
+				if (this.fixed) this.$nextTick(() => this.focus());
 			});
 
 			if (this.text && this.text != '') {
