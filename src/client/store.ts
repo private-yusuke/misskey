@@ -91,6 +91,7 @@ export const defaultDeviceSettings = {
 	sfxChatBg: 'syuilo/waon',
 	sfxAntenna: 'syuilo/triple',
 	timestampFormat: 'relative',
+	enableFocusReactionEmojiInput: true,
 	userData: {},
 };
 

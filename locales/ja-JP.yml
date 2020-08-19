@@ -560,6 +560,7 @@ wordMute: "ワードミュート"
 userSaysSomething: "{name}が何かを言いました"
 makeActive: "アクティブにする"
 display: "表示"
+enableFocusReactionEmojiInput: "リアクションピッカーにある入力欄への自動フォーカスを有効にする"
 
 _sidebar:
   full: "フル"

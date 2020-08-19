@@ -100,6 +100,7 @@
 			<mk-switch v-model="enableInfiniteScroll">{{ $t('enableInfiniteScroll') }}</mk-switch>
 			<mk-switch v-model="fixedWidgetsPosition">{{ $t('fixedWidgetsPosition') }}</mk-switch>
 			<mk-switch v-model="disablePagesScript">{{ $t('disablePagesScript') }}</mk-switch>
+			<mk-switch v-model="enableFocusReactionEmojiInput">{{ $t('enableFocusReactionEmojiInput') }}</mk-switch>
 		</div>
 		<div class="_content">
 			<mk-select v-model="timestampFormat">
@@ -294,7 +295,12 @@ export default Vue.extend({
 		timestampFormat: {
 			get() { return this.$store.state.device.timestampFormat; },
 			set(value) { this.$store.commit('device/set', { key: 'timestampFormat', value }); }
-		}
+		},
+
+		enableFocusReactionEmojiInput: {
+			get() { return this.$store.state.device.enableFocusReactionEmojiInput; },
+			set(value) { this.$store.commit('device/set', { key: 'enableFocusReactionEmojiInput', value }); }
+		},
 	},
 
 	watch: {
