@@ -217,3 +217,5 @@ export interface ILocalUser extends User {
 export interface IRemoteUser extends User {
 	host: string;
 }
+
+export type IUser = ILocalUser | IRemoteUser;

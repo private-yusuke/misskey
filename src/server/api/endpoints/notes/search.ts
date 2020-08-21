@@ -1,13 +1,16 @@
 import $ from 'cafy';
 import es from '../../../../db/elasticsearch';
 import define from '../../define';
-import { Notes } from '../../../../models';
+import { Notes, Users } from '../../../../models';
 import { In } from 'typeorm';
 import { ID } from '../../../../misc/cafy-id';
 import config from '../../../../config';
 import { makePaginationQuery } from '../../common/make-pagination-query';
 import { generateVisibilityQuery } from '../../common/generate-visibility-query';
 import { generateMutedUserQuery } from '../../common/generate-muted-user-query';
+import { toPunyNullable } from '../../../../misc/convert-host';
+import { IUser } from '../../../../models/entities/user';
+import { safeForSql } from '../../../../misc/safe-for-sql';
 
 export const meta = {
 	desc: {
@@ -65,9 +68,33 @@ export const meta = {
 export default define(meta, async (ps, me) => {
 	if (es == null) {
 		const query = makePaginationQuery(Notes.createQueryBuilder('note'), ps.sinceId, ps.untilId)
-			.andWhere('note.text ILIKE :q', { q: `%${ps.query}%` })
 			.leftJoinAndSelect('note.user', 'user');
 
+		let from: IUser | null  = null;
+		let words: string = '';
+		const tokens = ps.query.trim().split(/\s+/);
+		for (const token of tokens) {
+			const matchFrom = token.match(/^from:@?([\w-]+)(?:@([\w.-]+))?$/);
+			if (matchFrom) {
+				if (!safeForSql(matchFrom[1])) return [];
+				if (!safeForSql(matchFrom[2])) return [];
+				const user = await Users.findOne({
+					usernameLower: matchFrom[1].toLowerCase(),
+					host: toPunyNullable(matchFrom[2]),
+				});
+				if (user == null) return [];
+				from = user;
+				continue;
+			}
+			words += token;
+		}
+
+		if (from) {
+			query.andWhere('note.userId = :userId', { userId: from.id });
+		}
+		if (words.length > 0) {
+			query.andWhere('note.text ILIKE :q', { q: `%${words}%` });
+		}
 		generateVisibilityQuery(query, me);
 		if (me) generateMutedUserQuery(query, me);
 
