@@ -72,6 +72,7 @@ export default define(meta, async (ps, me) => {
 
 		let from: IUser | null  = null;
 		let words: string = '';
+		let withFiles = false;
 		const tokens = ps.query.trim().split(/\s+/);
 		for (const token of tokens) {
 			const matchFrom = token.match(/^from:@?([\w-]+)(?:@([\w.-]+))?$/);
@@ -86,11 +87,24 @@ export default define(meta, async (ps, me) => {
 				from = user;
 				continue;
 			}
+
+			const matchFile = token.match(/^file:(\w+)$/);
+			if (matchFile) {
+				if (matchFile[1] === 'all') {
+					withFiles = true;
+					continue;
+				} else {
+					return [];
+				}
+			}
 			words += token;
 		}
 
 		if (from) {
 			query.andWhere('note.userId = :userId', { userId: from.id });
+		}
+		if (withFiles) {
+			query.andWhere('note.fileIds != :fileId', { fileId: '{}' });
 		}
 		if (words.length > 0) {
 			query.andWhere('note.text ILIKE :q', { q: `%${words}%` });
