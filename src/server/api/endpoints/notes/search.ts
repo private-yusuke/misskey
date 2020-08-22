@@ -72,9 +72,12 @@ export default define(meta, async (ps, me) => {
 
 		let from: IUser | null  = null;
 		const words: string[] = [];
+		const excludeWords: string[] = [];
 		let withFiles = false;
-		const tokens = ps.query.trim().split(/\s+/);
-		for (const token of tokens) {
+		const tokens = ps.query.trim().match(/(?:[^\s"']+|['"][^'"]*["'])+/g);
+		if (tokens == null) return [];
+		for (let token of tokens) {
+			token = token.replace(/(['"])/g, '');
 			const matchFrom = token.match(/^from:@?([\w-]+)(?:@([\w.-]+))?$/);
 			if (matchFrom) {
 				if (!safeForSql(matchFrom[1])) return [];
@@ -97,6 +100,12 @@ export default define(meta, async (ps, me) => {
 					return [];
 				}
 			}
+
+			const matchExcludeWords = token.match(/^-/);
+			if (matchExcludeWords) {
+				excludeWords.push(token.replace(/^-/, ''));
+				continue;
+			}
 			words.push(token);
 		}
 
@@ -106,12 +115,22 @@ export default define(meta, async (ps, me) => {
 		if (withFiles) {
 			query.andWhere('note.fileIds != :fileId', { fileId: '{}' });
 		}
+		if (excludeWords.length > 0) {
+			query.andWhere(new Brackets(qb => {
+				let count = 0;
+				for (const excludeWord of excludeWords) {
+					if (!safeForSql(excludeWord)) return;
+					qb.andWhere(`note.text NOT ILIKE :excludeWord_${count}`, { [`excludeWord_${count}`]: `%${excludeWord}%` });
+					count++;
+				}
+			}));
+		}
 		if (words.length > 0) {
 			query.andWhere(new Brackets(qb => {
 				let count = 0;
 				for (const word of words) {
 					if (!safeForSql(word)) return;
-					qb.andWhere(`note.text ILIKE :q_${count}`, { [`q_${count}`]: `%${word}%` });
+					qb.andWhere(`note.text ILIKE :word_${count}`, { [`word_${count}`]: `%${word}%` });
 					count++;
 				}
 			}));
