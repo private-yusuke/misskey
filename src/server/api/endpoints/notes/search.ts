@@ -2,7 +2,7 @@ import $ from 'cafy';
 import es from '../../../../db/elasticsearch';
 import define from '../../define';
 import { Notes, Users } from '../../../../models';
-import { In } from 'typeorm';
+import { In, Brackets } from 'typeorm';
 import { ID } from '../../../../misc/cafy-id';
 import config from '../../../../config';
 import { makePaginationQuery } from '../../common/make-pagination-query';
@@ -71,7 +71,7 @@ export default define(meta, async (ps, me) => {
 			.leftJoinAndSelect('note.user', 'user');
 
 		let from: IUser | null  = null;
-		let words: string = '';
+		const words: string[] = [];
 		let withFiles = false;
 		const tokens = ps.query.trim().split(/\s+/);
 		for (const token of tokens) {
@@ -97,7 +97,7 @@ export default define(meta, async (ps, me) => {
 					return [];
 				}
 			}
-			words += token;
+			words.push(token);
 		}
 
 		if (from) {
@@ -107,7 +107,14 @@ export default define(meta, async (ps, me) => {
 			query.andWhere('note.fileIds != :fileId', { fileId: '{}' });
 		}
 		if (words.length > 0) {
-			query.andWhere('note.text ILIKE :q', { q: `%${words}%` });
+			query.andWhere(new Brackets(qb => {
+				let count = 0;
+				for (const word of words) {
+					if (!safeForSql(word)) return;
+					qb.andWhere(`note.text ILIKE :q_${count}`, { [`q_${count}`]: `%${word}%` });
+					count++;
+				}
+			}));
 		}
 		generateVisibilityQuery(query, me);
 		if (me) generateMutedUserQuery(query, me);
