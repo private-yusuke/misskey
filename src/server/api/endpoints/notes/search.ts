@@ -77,10 +77,15 @@ export default define(meta, async (ps, me) => {
 		const words: string[] = [];
 		const excludeWords: string[] = [];
 		let withFiles = false;
+		let withPolls: boolean | null = null;
+		let withCw: boolean | null = null;
 		let since: Date | null = null;
 		let until: Date | null = null;
 		const fromRegex = /^from:@?([\w-]+)(?:@([\w.-]+))?$/;
 		const toRegex = /^to:@?([\w-]+)(?:@([\w.-]+))?$/;
+		const pollsRegex = /^(poll|polls)$/i;
+		const cwRegex = /cw/i;
+		const filterRegex = /^filter:(\w+)$/;
 		const tokens = ps.query.trim().match(/(?:[^\s"']+|['"][^'"]*["'])+/g);
 		if (tokens == null) return [];
 		for (let token of tokens) {
@@ -131,6 +136,23 @@ export default define(meta, async (ps, me) => {
 				continue;
 			}
 
+			const matchFilter = token.match(filterRegex);
+			if (matchFilter) {
+				const replacedWord = token.replace(/^filter:/, '');
+				const matchPolls = replacedWord.match(pollsRegex);
+				if (matchPolls) {
+					withPolls = true;
+					continue;
+				}
+
+				const matchCw = replacedWord.match(cwRegex);
+				if (matchCw) {
+					withCw = true;
+					continue;
+				}
+				return [];
+			}
+
 			const matchExcludeWord = token.match(/^-/);
 			if (matchExcludeWord) {
 				const replacedWord = token.replace(/^-/, '');
@@ -175,6 +197,14 @@ export default define(meta, async (ps, me) => {
 		}
 		if (withFiles) {
 			query.andWhere('note.fileIds != :fileId', { fileId: '{}' });
+		}
+		if (withPolls != null) {
+			query.andWhere('note.hasPoll = :withPolls', { withPolls: withPolls });
+		}
+		if (withCw == true) {
+			query.andWhere('note.cw IS NOT NULL');
+		} else if (withCw == false) {
+			query.andWhere('note.cw IS NULL');
 		}
 		if (since) {
 			query.andWhere('note.createdAt >= :since', { since: since });
