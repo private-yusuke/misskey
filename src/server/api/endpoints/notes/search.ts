@@ -177,10 +177,10 @@ export default define(meta, async (ps, me) => {
 			query.andWhere('note.fileIds != :fileId', { fileId: '{}' });
 		}
 		if (since) {
-			query.andWhere('note.createdAt > :since', { since: since });
+			query.andWhere('note.createdAt >= :since', { since: since });
 		}
 		if (until) {
-			query.andWhere('note.createdAt < :until', { until: until });
+			query.andWhere('note.createdAt <= :until', { until: until });
 		}
 		if (excludeWords.length > 0) {
 			query.andWhere(new Brackets(qb => {
