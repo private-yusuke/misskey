@@ -71,11 +71,13 @@ export default define(meta, async (ps, me) => {
 			.leftJoinAndSelect('note.user', 'user');
 
 		let from: IUser | null  = null;
+		const toUsers: IUser[] = [];
 		const excludeFroms: IUser[] = [];
 		const words: string[] = [];
 		const excludeWords: string[] = [];
 		let withFiles = false;
 		const fromRegex = /^from:@?([\w-]+)(?:@([\w.-]+))?$/;
+		const toRegex = /^to:@?([\w-]+)(?:@([\w.-]+))?$/;
 		const tokens = ps.query.trim().match(/(?:[^\s"']+|['"][^'"]*["'])+/g);
 		if (tokens == null) return [];
 		for (let token of tokens) {
@@ -101,6 +103,17 @@ export default define(meta, async (ps, me) => {
 				}
 			}
 
+			const matchTo = token.match(toRegex);
+			if (matchTo) {
+				const user = await getUser(matchTo[1], matchTo[2]);
+				if (user == null) {
+					return [];
+				} else {
+					toUsers.push(user);
+					continue;
+				}
+			}
+
 			const matchExcludeWord = token.match(/^-/);
 			if (matchExcludeWord) {
 				const replacedWord = token.replace(/^-/, '');
@@ -122,6 +135,14 @@ export default define(meta, async (ps, me) => {
 
 		if (from) {
 			query.andWhere('note.userId = :userId', { userId: from.id });
+		}
+		if (toUsers.length > 0) {
+			query.andWhere(new Brackets(qb => {
+				for (const toUser of toUsers) {
+					if (!safeForSql(toUser.id)) return;
+					qb.andWhere(':toUser.id = ANY (note.mentions)', { toUser: toUser.id });
+				}
+			}));
 		}
 		if (withFiles) {
 			query.andWhere('note.fileIds != :fileId', { fileId: '{}' });
