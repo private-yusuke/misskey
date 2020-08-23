@@ -71,24 +71,24 @@ export default define(meta, async (ps, me) => {
 			.leftJoinAndSelect('note.user', 'user');
 
 		let from: IUser | null  = null;
+		const excludeFroms: IUser[] = [];
 		const words: string[] = [];
 		const excludeWords: string[] = [];
 		let withFiles = false;
+		const fromRegex = /^from:@?([\w-]+)(?:@([\w.-]+))?$/;
 		const tokens = ps.query.trim().match(/(?:[^\s"']+|['"][^'"]*["'])+/g);
 		if (tokens == null) return [];
 		for (let token of tokens) {
 			token = token.replace(/(['"])/g, '');
-			const matchFrom = token.match(/^from:@?([\w-]+)(?:@([\w.-]+))?$/);
+			const matchFrom = token.match(fromRegex);
 			if (matchFrom) {
-				if (!safeForSql(matchFrom[1])) return [];
-				if (!safeForSql(matchFrom[2])) return [];
-				const user = await Users.findOne({
-					usernameLower: matchFrom[1].toLowerCase(),
-					host: toPunyNullable(matchFrom[2]),
-				});
-				if (user == null) return [];
-				from = user;
-				continue;
+				const user = await getUser(matchFrom[1], matchFrom[2]);
+				if (user == null) {
+					return [];
+				} else {
+					from = user;
+					continue;
+				}
 			}
 
 			const matchFile = token.match(/^file:(\w+)$/);
@@ -101,9 +101,20 @@ export default define(meta, async (ps, me) => {
 				}
 			}
 
-			const matchExcludeWords = token.match(/^-/);
-			if (matchExcludeWords) {
-				excludeWords.push(token.replace(/^-/, ''));
+			const matchExcludeWord = token.match(/^-/);
+			if (matchExcludeWord) {
+				const replacedWord = token.replace(/^-/, '');
+				const matchFrom = replacedWord.match(fromRegex);
+				if (matchFrom) {
+					const user = await getUser(matchFrom[1], matchFrom[2]);
+					if (user == null) {
+						return [];
+					} else {
+						excludeFroms.push(user);
+						continue;
+					}
+				}
+				excludeWords.push(replacedWord);
 				continue;
 			}
 			words.push(token);
@@ -121,6 +132,15 @@ export default define(meta, async (ps, me) => {
 				for (const excludeWord of excludeWords) {
 					if (!safeForSql(excludeWord)) return;
 					qb.andWhere(`note.text NOT ILIKE :excludeWord_${count}`, { [`excludeWord_${count}`]: `%${excludeWord}%` });
+					count++;
+				}
+			}));
+		}
+		if (excludeFroms.length > 0) {
+			query.andWhere(new Brackets(qb => {
+				let count = 0;
+				for (const excludeFrom of excludeFroms) {
+					qb.andWhere(`note.userId != :excludeFromUserId_${count}`, { [`excludeFromUserId_${count}`]: excludeFrom.id });
 					count++;
 				}
 			}));
@@ -203,3 +223,14 @@ export default define(meta, async (ps, me) => {
 		return await Notes.packMany(notes, me);
 	}
 });
+
+const getUser = async (username: string, host: string): Promise<IUser | null>  => {
+	if (!safeForSql(username)) return null;
+	if (!safeForSql(host)) return null;
+	const user = await Users.findOne({
+		usernameLower: username.toLowerCase(),
+		host: toPunyNullable(host),
+	});
+	if (user == null) return null;
+	return user;
+};
