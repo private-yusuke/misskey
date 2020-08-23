@@ -77,6 +77,7 @@ export default define(meta, async (ps, me) => {
 		const words: string[] = [];
 		const excludeWords: string[] = [];
 		let withFiles = false;
+		let since: Date | null = null;
 		const fromRegex = /^from:@?([\w-]+)(?:@([\w.-]+))?$/;
 		const toRegex = /^to:@?([\w-]+)(?:@([\w.-]+))?$/;
 		const tokens = ps.query.trim().match(/(?:[^\s"']+|['"][^'"]*["'])+/g);
@@ -113,6 +114,13 @@ export default define(meta, async (ps, me) => {
 					toUsers.push(user);
 					continue;
 				}
+			}
+
+			const matchSince = token.match(/^since:(\d{4}-\d{1,2}-\d{1,2})/);
+			if (matchSince) {
+				since = new Date(`${matchSince[1]} 00:00:00 +0900`);
+				if (isNaN(since.getTime())) return [];
+				continue;
 			}
 
 			const matchExcludeWord = token.match(/^-/);
@@ -159,6 +167,9 @@ export default define(meta, async (ps, me) => {
 		}
 		if (withFiles) {
 			query.andWhere('note.fileIds != :fileId', { fileId: '{}' });
+		}
+		if (since) {
+			query.andWhere('note.createdAt > :since', { since: since });
 		}
 		if (excludeWords.length > 0) {
 			query.andWhere(new Brackets(qb => {
