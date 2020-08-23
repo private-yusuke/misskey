@@ -73,6 +73,7 @@ export default define(meta, async (ps, me) => {
 		let from: IUser | null  = null;
 		const toUsers: IUser[] = [];
 		const excludeFroms: IUser[] = [];
+		const excludeToUsers: IUser[] = [];
 		const words: string[] = [];
 		const excludeWords: string[] = [];
 		let withFiles = false;
@@ -127,6 +128,18 @@ export default define(meta, async (ps, me) => {
 						continue;
 					}
 				}
+
+				const matchToUser = replacedWord.match(toRegex);
+				if (matchToUser) {
+					const user = await getUser(matchToUser[1], matchToUser[2]);
+					if (user == null) {
+						return[];
+					} else {
+						excludeToUsers.push(user);
+						continue;
+					}
+				}
+
 				excludeWords.push(replacedWord);
 				continue;
 			}
@@ -163,6 +176,13 @@ export default define(meta, async (ps, me) => {
 				for (const excludeFrom of excludeFroms) {
 					qb.andWhere(`note.userId != :excludeFromUserId_${count}`, { [`excludeFromUserId_${count}`]: excludeFrom.id });
 					count++;
+				}
+			}));
+		}
+		if (excludeToUsers.length > 0) {
+			query.andWhere(new Brackets(qb => {
+				for (const excludeToUser of excludeToUsers) {
+					qb.andWhere(':excludeToUser != ALL (note.mentions)', { excludeToUser: excludeToUser.id });
 				}
 			}));
 		}
