@@ -91,7 +91,7 @@ export default define(meta, async (ps, me) => {
 				}
 			}
 
-			const matchFile = token.match(/^file:(\w+)$/);
+			const matchFile = token.match(/^filetype:(\w+)$/);
 			if (matchFile) {
 				if (matchFile[1] === 'all') {
 					withFiles = true;
