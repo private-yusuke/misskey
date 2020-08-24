@@ -76,7 +76,7 @@ export default define(meta, async (ps, me) => {
 		const excludeToUsers: IUser[] = [];
 		const words: string[] = [];
 		const excludeWords: string[] = [];
-		let withFiles = false;
+		let withFiles: boolean | null = null;
 		let withPolls: boolean | null = null;
 		let withCw: boolean | null = null;
 		let since: Date | null = null;
@@ -181,12 +181,28 @@ export default define(meta, async (ps, me) => {
 				const matchFilter = replacedExcludeWord.match(filterRegex);
 				if (matchFilter) {
 					const replacedFilterWord = replacedExcludeWord.replace(/^filter:/, '');
+					const matchPolls = replacedFilterWord.match(pollsRegex);
+					if (matchPolls) {
+						withPolls = false;
+						continue;
+					}
+
 					const matchCw = replacedFilterWord.match(cwRegex);
 					if (matchCw) {
 						withCw = false;
 						continue;
 					}
 					return [];
+				}
+
+				const matchFile = replacedExcludeWord.match(/^filetype:(\w+)$/);
+				if (matchFile) {
+					if (matchFile[1] === 'all') {
+						withFiles = false;
+						continue;
+					} else {
+						return [];
+					}
 				}
 
 				excludeWords.push(replacedExcludeWord);
@@ -206,8 +222,10 @@ export default define(meta, async (ps, me) => {
 				}
 			}));
 		}
-		if (withFiles) {
+		if (withFiles == true) {
 			query.andWhere('note.fileIds != :fileId', { fileId: '{}' });
+		} else if (withFiles == false) {
+			query.andWhere('note.fileIds = :fileId', { fileId: '{}' });
 		}
 		if (withPolls != null) {
 			query.andWhere('note.hasPoll = :withPolls', { withPolls: withPolls });
