@@ -222,18 +222,22 @@ export default define(meta, async (ps, me) => {
 				}
 			}));
 		}
-		if (withFiles == true) {
-			query.andWhere('note.fileIds != :fileId', { fileId: '{}' });
-		} else if (withFiles == false) {
-			query.andWhere('note.fileIds = :fileId', { fileId: '{}' });
+		if (withFiles != null) {
+			if (withFiles) {
+				query.andWhere('note.fileIds != :fileId', { fileId: '{}' });
+			} else {
+				query.andWhere('note.fileIds = :fileId', { fileId: '{}' });
+			}
 		}
 		if (withPolls != null) {
 			query.andWhere('note.hasPoll = :withPolls', { withPolls: withPolls });
 		}
-		if (withCw == true) {
-			query.andWhere('note.cw IS NOT NULL');
-		} else if (withCw == false) {
-			query.andWhere('note.cw IS NULL');
+		if (withCw != null) {
+			if (withCw) {
+				query.andWhere('note.cw IS NOT NULL');
+			} else {
+				query.andWhere('note.cw IS NULL');
+			}
 		}
 		if (since) {
 			query.andWhere('note.createdAt >= :since', { since: since });
