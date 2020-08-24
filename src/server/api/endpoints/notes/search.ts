@@ -204,9 +204,11 @@ export default define(meta, async (ps, me) => {
 					}
 				}
 
+				if (!safeForSql(matchExcludeWord[1])) return [];
 				excludeWords.push(matchExcludeWord[1]);
 				continue;
 			}
+			if (!safeForSql(token)) return [];
 			words.push(token);
 		}
 
@@ -216,7 +218,6 @@ export default define(meta, async (ps, me) => {
 		if (toUsers.length > 0) {
 			query.andWhere(new Brackets(qb => {
 				for (const toUser of toUsers) {
-					if (!safeForSql(toUser.id)) return;
 					qb.andWhere(':toUser.id = ANY (note.mentions)', { toUser: toUser.id });
 				}
 			}));
@@ -244,7 +245,6 @@ export default define(meta, async (ps, me) => {
 			query.andWhere(new Brackets(qb => {
 				let count = 0;
 				for (const excludeWord of excludeWords) {
-					if (!safeForSql(excludeWord)) return;
 					qb.andWhere(`note.text NOT ILIKE :excludeWord_${count}`, { [`excludeWord_${count}`]: `%${excludeWord}%` });
 					count++;
 				}
@@ -270,7 +270,6 @@ export default define(meta, async (ps, me) => {
 			query.andWhere(new Brackets(qb => {
 				let count = 0;
 				for (const word of words) {
-					if (!safeForSql(word)) return;
 					qb.andWhere(`note.text ILIKE :word_${count}`, { [`word_${count}`]: `%${word}%` });
 					count++;
 				}
