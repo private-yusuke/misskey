@@ -155,8 +155,8 @@ export default define(meta, async (ps, me) => {
 
 			const matchExcludeWord = token.match(/^-/);
 			if (matchExcludeWord) {
-				const replacedWord = token.replace(/^-/, '');
-				const matchFrom = replacedWord.match(fromRegex);
+				const replacedExcludeWord = token.replace(/^-/, '');
+				const matchFrom = replacedExcludeWord.match(fromRegex);
 				if (matchFrom) {
 					const user = await getUser(matchFrom[1], matchFrom[2]);
 					if (user == null) {
@@ -167,7 +167,7 @@ export default define(meta, async (ps, me) => {
 					}
 				}
 
-				const matchToUser = replacedWord.match(toRegex);
+				const matchToUser = replacedExcludeWord.match(toRegex);
 				if (matchToUser) {
 					const user = await getUser(matchToUser[1], matchToUser[2]);
 					if (user == null) {
@@ -178,7 +178,18 @@ export default define(meta, async (ps, me) => {
 					}
 				}
 
-				excludeWords.push(replacedWord);
+				const matchFilter = replacedExcludeWord.match(filterRegex);
+				if (matchFilter) {
+					const replacedFilterWord = replacedExcludeWord.replace(/^filter:/, '');
+					const matchCw = replacedFilterWord.match(cwRegex);
+					if (matchCw) {
+						withCw = false;
+						continue;
+					}
+					return [];
+				}
+
+				excludeWords.push(replacedExcludeWord);
 				continue;
 			}
 			words.push(token);
