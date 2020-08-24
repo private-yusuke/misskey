@@ -87,6 +87,7 @@ export default define(meta, async (ps, me) => {
 		const cwRegex = /cw/i;
 		const filterRegex = /^filter:(\w+)$/;
 		const excludeRegex = /^-([\w:@.-]+)$/;
+		const filetypeRegex = /^filetype:(\w+)$/;
 		const tokens = ps.query.trim().match(/(?:[^\s"']+|['"][^'"]*["'])+/g);
 		if (tokens == null) return [];
 		for (let token of tokens) {
@@ -102,9 +103,9 @@ export default define(meta, async (ps, me) => {
 				}
 			}
 
-			const matchFile = token.match(/^filetype:(\w+)$/);
-			if (matchFile) {
-				if (matchFile[1] === 'all') {
+			const matchFileType = token.match(filetypeRegex);
+			if (matchFileType) {
+				if (matchFileType[1] === 'all') {
 					withFiles = true;
 					continue;
 				} else {
@@ -193,9 +194,9 @@ export default define(meta, async (ps, me) => {
 					return [];
 				}
 
-				const matchFile = matchExcludeWord[1].match(/^filetype:(\w+)$/);
-				if (matchFile) {
-					if (matchFile[1] === 'all') {
+				const matchFileType = matchExcludeWord[1].match(filetypeRegex);
+				if (matchFileType) {
+					if (matchFileType[1] === 'all') {
 						withFiles = false;
 						continue;
 					} else {
