@@ -86,6 +86,7 @@ export default define(meta, async (ps, me) => {
 		const pollsRegex = /^(poll|polls)$/i;
 		const cwRegex = /cw/i;
 		const filterRegex = /^filter:(\w+)$/;
+		const excludeRegex = /^-([\w:@.-]+)$/;
 		const tokens = ps.query.trim().match(/(?:[^\s"']+|['"][^'"]*["'])+/g);
 		if (tokens == null) return [];
 		for (let token of tokens) {
@@ -138,14 +139,13 @@ export default define(meta, async (ps, me) => {
 
 			const matchFilter = token.match(filterRegex);
 			if (matchFilter) {
-				const replacedWord = token.replace(/^filter:/, '');
-				const matchPolls = replacedWord.match(pollsRegex);
+				const matchPolls = matchFilter[1].match(pollsRegex);
 				if (matchPolls) {
 					withPolls = true;
 					continue;
 				}
 
-				const matchCw = replacedWord.match(cwRegex);
+				const matchCw = matchFilter[1].match(cwRegex);
 				if (matchCw) {
 					withCw = true;
 					continue;
@@ -153,10 +153,9 @@ export default define(meta, async (ps, me) => {
 				return [];
 			}
 
-			const matchExcludeWord = token.match(/^-/);
+			const matchExcludeWord = token.match(excludeRegex);
 			if (matchExcludeWord) {
-				const replacedExcludeWord = token.replace(/^-/, '');
-				const matchFrom = replacedExcludeWord.match(fromRegex);
+				const matchFrom = matchExcludeWord[1].match(fromRegex);
 				if (matchFrom) {
 					const user = await getUser(matchFrom[1], matchFrom[2]);
 					if (user == null) {
@@ -167,7 +166,7 @@ export default define(meta, async (ps, me) => {
 					}
 				}
 
-				const matchToUser = replacedExcludeWord.match(toRegex);
+				const matchToUser = matchExcludeWord[1].match(toRegex);
 				if (matchToUser) {
 					const user = await getUser(matchToUser[1], matchToUser[2]);
 					if (user == null) {
@@ -178,16 +177,15 @@ export default define(meta, async (ps, me) => {
 					}
 				}
 
-				const matchFilter = replacedExcludeWord.match(filterRegex);
+				const matchFilter = matchExcludeWord[1].match(filterRegex);
 				if (matchFilter) {
-					const replacedFilterWord = replacedExcludeWord.replace(/^filter:/, '');
-					const matchPolls = replacedFilterWord.match(pollsRegex);
+					const matchPolls = matchFilter[1].match(pollsRegex);
 					if (matchPolls) {
 						withPolls = false;
 						continue;
 					}
 
-					const matchCw = replacedFilterWord.match(cwRegex);
+					const matchCw = matchFilter[1].match(cwRegex);
 					if (matchCw) {
 						withCw = false;
 						continue;
@@ -195,7 +193,7 @@ export default define(meta, async (ps, me) => {
 					return [];
 				}
 
-				const matchFile = replacedExcludeWord.match(/^filetype:(\w+)$/);
+				const matchFile = matchExcludeWord[1].match(/^filetype:(\w+)$/);
 				if (matchFile) {
 					if (matchFile[1] === 'all') {
 						withFiles = false;
@@ -205,7 +203,7 @@ export default define(meta, async (ps, me) => {
 					}
 				}
 
-				excludeWords.push(replacedExcludeWord);
+				excludeWords.push(matchExcludeWord[1]);
 				continue;
 			}
 			words.push(token);
