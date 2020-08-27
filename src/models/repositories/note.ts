@@ -188,17 +188,13 @@ export class NoteRepository extends Repository<Note> {
 			return all;
 		}
 
-		async function populateMyReaction() {
-			const reaction = await NoteReactions.findOne({
+		async function populateMyReactions() {
+			const reactions = await NoteReactions.find({
 				userId: meId!,
 				noteId: note.id,
 			});
 
-			if (reaction) {
-				return convertLegacyReaction(reaction.reaction);
-			}
-
-			return undefined;
+			return reactions.map(reaction => convertLegacyReaction(reaction.reaction));
 		}
 
 		let text = note.text;
@@ -245,7 +241,7 @@ export class NoteRepository extends Repository<Note> {
 				poll: note.hasPoll ? populatePoll() : undefined,
 
 				...(meId ? {
-					myReaction: populateMyReaction()
+					myReactions: populateMyReactions()
 				} : {})
 			} : {})
 		});
@@ -253,6 +249,10 @@ export class NoteRepository extends Repository<Note> {
 		if (packed.user.isCat && packed.text) {
 			const tokens = packed.text ? parse(packed.text) : [];
 			packed.text = toString(tokens, { doNyaize: true });
+		}
+
+		if (packed.myReactions) {
+			packed.myReaction = packed.myReactions[0];
 		}
 
 		if (!opts.skipHide) {
