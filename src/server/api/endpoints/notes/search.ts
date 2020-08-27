@@ -2,7 +2,7 @@ import $ from 'cafy';
 import es from '../../../../db/elasticsearch';
 import define from '../../define';
 import { Notes, Users } from '../../../../models';
-import { In, Brackets } from 'typeorm';
+import { In } from 'typeorm';
 import { ID } from '../../../../misc/cafy-id';
 import config from '../../../../config';
 import { makePaginationQuery } from '../../common/make-pagination-query';
@@ -70,17 +70,6 @@ export default define(meta, async (ps, me) => {
 		const query = makePaginationQuery(Notes.createQueryBuilder('note'), ps.sinceId, ps.untilId)
 			.leftJoinAndSelect('note.user', 'user');
 
-		let from: IUser | null  = null;
-		const toUsers: IUser[] = [];
-		const excludeFroms: IUser[] = [];
-		const excludeToUsers: IUser[] = [];
-		const words: string[] = [];
-		const excludeWords: string[] = [];
-		let withFiles: boolean | null = null;
-		let withPolls: boolean | null = null;
-		let withCw: boolean | null = null;
-		let since: Date | null = null;
-		let until: Date | null = null;
 		const fromRegex = /^from:@?([\w-]+)(?:@([\w.-]+))?$/;
 		const toRegex = /^to:@?([\w-]+)(?:@([\w.-]+))?$/;
 		const pollsRegex = /^(poll|polls)$/i;
@@ -98,7 +87,7 @@ export default define(meta, async (ps, me) => {
 				if (user == null) {
 					return [];
 				} else {
-					from = user;
+					query.andWhere(`note.userId = '${user.id}'`);
 					continue;
 				}
 			}
@@ -106,7 +95,7 @@ export default define(meta, async (ps, me) => {
 			const matchFileType = token.match(filetypeRegex);
 			if (matchFileType) {
 				if (matchFileType[1] === 'all') {
-					withFiles = true;
+					query.andWhere('note.fileIds != :fileId', { fileId: '{}' });
 					continue;
 				} else {
 					return [];
@@ -119,22 +108,24 @@ export default define(meta, async (ps, me) => {
 				if (user == null) {
 					return [];
 				} else {
-					toUsers.push(user);
+					query.andWhere(`'${user.id}' = ANY (note.mentions)`);
 					continue;
 				}
 			}
 
 			const matchSince = token.match(/^since:(\d{4}-\d{1,2}-\d{1,2})/);
 			if (matchSince) {
-				since = new Date(`${matchSince[1]} 00:00:00 +0900`);
+				const since = new Date(`${matchSince[1]} 00:00:00 +0900`);
 				if (isNaN(since.getTime())) return [];
+				query.andWhere('note.createdAt >= :since', { since: since });
 				continue;
 			}
 
 			const matchUntil = token.match(/^until:(\d{4}-\d{1,2}-\d{1,2})/);
 			if (matchUntil) {
-				until = new Date(`${matchUntil[1]} 23:59:59 +0900`);
+				const until = new Date(`${matchUntil[1]} 23:59:59 +0900`);
 				if (isNaN(until.getTime())) return [];
+				query.andWhere('note.createdAt <= :until', { until: until });
 				continue;
 			}
 
@@ -142,13 +133,13 @@ export default define(meta, async (ps, me) => {
 			if (matchFilter) {
 				const matchPolls = matchFilter[1].match(pollsRegex);
 				if (matchPolls) {
-					withPolls = true;
+					query.andWhere('note.hasPoll = :withPolls', { withPolls: true });
 					continue;
 				}
 
 				const matchCw = matchFilter[1].match(cwRegex);
 				if (matchCw) {
-					withCw = true;
+					query.andWhere('note.cw IS NOT NULL');
 					continue;
 				}
 				return [];
@@ -162,7 +153,7 @@ export default define(meta, async (ps, me) => {
 					if (user == null) {
 						return [];
 					} else {
-						excludeFroms.push(user);
+						query.andWhere(`note.userId != '${user.id}'`);
 						continue;
 					}
 				}
@@ -173,7 +164,7 @@ export default define(meta, async (ps, me) => {
 					if (user == null) {
 						return[];
 					} else {
-						excludeToUsers.push(user);
+						query.andWhere(`'${user.id}' != ALL (note.mentions)`);
 						continue;
 					}
 				}
@@ -182,13 +173,13 @@ export default define(meta, async (ps, me) => {
 				if (matchFilter) {
 					const matchPolls = matchFilter[1].match(pollsRegex);
 					if (matchPolls) {
-						withPolls = false;
+						query.andWhere('note.hasPoll = :withPolls', { withPolls: false });
 						continue;
 					}
 
 					const matchCw = matchFilter[1].match(cwRegex);
 					if (matchCw) {
-						withCw = false;
+						query.andWhere('note.cw IS NULL');
 						continue;
 					}
 					return [];
@@ -197,7 +188,7 @@ export default define(meta, async (ps, me) => {
 				const matchFileType = matchExcludeWord[1].match(filetypeRegex);
 				if (matchFileType) {
 					if (matchFileType[1] === 'all') {
-						withFiles = false;
+						query.andWhere('note.fileIds = :fileId', { fileId: '{}' });
 						continue;
 					} else {
 						return [];
@@ -205,80 +196,13 @@ export default define(meta, async (ps, me) => {
 				}
 
 				if (!safeForSql(matchExcludeWord[1])) return [];
-				excludeWords.push(matchExcludeWord[1]);
+				query.andWhere(`note.text NOT ILIKE '%${matchExcludeWord[1]}%'`);
 				continue;
 			}
 			if (!safeForSql(token)) return [];
-			words.push(token);
+			query.andWhere(`note.text ILIKE '%${token}%'`);
 		}
 
-		if (from) {
-			query.andWhere('note.userId = :userId', { userId: from.id });
-		}
-		if (toUsers.length > 0) {
-			query.andWhere(new Brackets(qb => {
-				for (const toUser of toUsers) {
-					qb.andWhere(':toUser.id = ANY (note.mentions)', { toUser: toUser.id });
-				}
-			}));
-		}
-		if (withFiles != null) {
-			if (withFiles) {
-				query.andWhere('note.fileIds != :fileId', { fileId: '{}' });
-			} else {
-				query.andWhere('note.fileIds = :fileId', { fileId: '{}' });
-			}
-		}
-		if (withPolls != null) {
-			query.andWhere('note.hasPoll = :withPolls', { withPolls: withPolls });
-		}
-		if (withCw != null) {
-			if (withCw) {
-				query.andWhere('note.cw IS NOT NULL');
-			} else {
-				query.andWhere('note.cw IS NULL');
-			}
-		}
-		if (since) {
-			query.andWhere('note.createdAt >= :since', { since: since });
-		}
-		if (until) {
-			query.andWhere('note.createdAt <= :until', { until: until });
-		}
-		if (excludeWords.length > 0) {
-			query.andWhere(new Brackets(qb => {
-				let count = 0;
-				for (const excludeWord of excludeWords) {
-					qb.andWhere(`note.text NOT ILIKE :excludeWord_${count}`, { [`excludeWord_${count}`]: `%${excludeWord}%` });
-					count++;
-				}
-			}));
-		}
-		if (excludeFroms.length > 0) {
-			query.andWhere(new Brackets(qb => {
-				let count = 0;
-				for (const excludeFrom of excludeFroms) {
-					qb.andWhere(`note.userId != :excludeFromUserId_${count}`, { [`excludeFromUserId_${count}`]: excludeFrom.id });
-					count++;
-				}
-			}));
-		}
-		if (excludeToUsers.length > 0) {
-			query.andWhere(new Brackets(qb => {
-				for (const excludeToUser of excludeToUsers) {
-					qb.andWhere(':excludeToUser != ALL (note.mentions)', { excludeToUser: excludeToUser.id });
-				}
-			}));
-		}
-		if (words.length > 0) {
-			query.andWhere(new Brackets(qb => {
-				let count = 0;
-				for (const word of words) {
-					qb.andWhere(`note.text ILIKE :word_${count}`, { [`word_${count}`]: `%${word}%` });
-					count++;
-				}
-			}));
-		}
 		generateVisibilityQuery(query, me);
 		if (me) generateMutedUserQuery(query, me);
 
