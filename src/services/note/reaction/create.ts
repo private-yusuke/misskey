@@ -45,6 +45,14 @@ export default async (user: User, note: Note, reaction?: string) => {
 		.where('id = :id', { id: note.id })
 		.execute();
 
+	await Notes.createQueryBuilder().update()
+		.set({
+			reactionTimestamps: () => `jsonb_set("reactionTimestamps", '{${reaction}}', extract(epoch from now())::text::jsonb)`,
+		})
+		.where('id = :id', { id: note.id })
+		.andWhere(`"reactionTimestamps"->'${reaction}' IS NULL`)
+		.execute();
+
 
 	if (existReactions.length === 0) {
 		Notes.increment({ id: note.id }, 'score', 1);

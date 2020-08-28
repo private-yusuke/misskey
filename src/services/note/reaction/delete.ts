@@ -45,6 +45,14 @@ export default async (user: User, note: Note, reaction?: string) => {
 		.where('id = :id', { id: note.id })
 		.execute();
 
+	await Notes.createQueryBuilder().update()
+		.set({
+			reactionTimestamps: () => `"reactionTimestamps" - '${reaction}'`,
+		})
+		.where('id = :id', { id: note.id })
+		.andWhere(`"reactions"->>'${reaction}' = '0'`)
+		.execute();
+
 	if (other == null) {
 		Notes.decrement({ id: note.id }, 'score', 1);
 	}

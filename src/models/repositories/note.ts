@@ -255,6 +255,18 @@ export class NoteRepository extends Repository<Note> {
 			packed.myReaction = packed.myReactions[0];
 		}
 
+		const reactionTimestamps = Object.keys(note.reactionTimestamps)
+			.reduce((o, k) => {
+				o[convertLegacyReaction(k)] = note.reactionTimestamps[k];
+				return o;
+			}, {});
+		packed.reactions = Object.keys(packed.reactions)
+			.sort((a, b) => (reactionTimestamps[a] || 0) - (reactionTimestamps[b] || 0))
+			.reduce((o, k) => {
+				o[k] = packed.reactions[k];
+				return o;
+			}, {});
+
 		if (!opts.skipHide) {
 			await this.hideNote(packed, meId);
 		}
