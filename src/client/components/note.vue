@@ -361,6 +361,12 @@ export default Vue.extend({
 						...this.appearNote.reactions,
 						[reaction]: currentCount + 1
 					};
+					if (n.reactions[reaction] === 1) {
+						// 一度取り消されたリアクションだと appearNote.reactions[reaction] == 0 になっていて、
+						// 意図しない順番になってしまうので消して最後尾につけ治す
+						delete n.reactions[reaction];
+						n.reactions[reaction] = 1;
+					}
 
 					if (body.userId === this.$store.state.i.id) {
 						n.myReactions.push(reaction);
