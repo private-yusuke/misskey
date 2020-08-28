@@ -24,6 +24,7 @@ class Autocomplete {
 	private currentType: string;
 	private opts: {
 		model: string;
+		type?: string;
 	};
 	private opening: boolean;
 
@@ -33,6 +34,10 @@ class Autocomplete {
 
 	private set text(text: string) {
 		this.vm[this.opts.model] = text;
+	}
+
+	private get type(): string {
+		return this.opts.type;
 	}
 
 	/**
@@ -76,7 +81,7 @@ class Autocomplete {
 
 		const mentionIndex = text.lastIndexOf('@');
 		const hashtagIndex = text.lastIndexOf('#');
-		const emojiIndex = text.lastIndexOf(':');
+		const emojiIndex = (this.type === 'reactionPicker') ? 0 : text.lastIndexOf(':');
 
 		const max = Math.max(
 			mentionIndex,
@@ -114,7 +119,7 @@ class Autocomplete {
 		}
 
 		if (isEmoji && !opened) {
-			const emoji = text.substr(emojiIndex + 1);
+			const emoji = (this.type === 'reactionPicker') ? (text.startsWith(':') ? text.substr(1) : text) : text.substr(emojiIndex + 1);
 			if (!emoji.includes(' ')) {
 				this.open('emoji', emoji);
 				opened = true;
