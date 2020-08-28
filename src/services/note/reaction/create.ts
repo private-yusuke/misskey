@@ -17,19 +17,14 @@ import deleteReaction from './delete';
 export default async (user: User, note: Note, reaction?: string) => {
 	reaction = await toDbReaction(reaction, user.host);
 
-	const exist = await NoteReactions.findOne({
+	const existReactions = await NoteReactions.find({
 		noteId: note.id,
 		userId: user.id,
 	});
 
-	if (exist) {
-		if (exist.reaction !== reaction) {
-			// 別のリアクションがすでにされていたら置き換える
-			await deleteReaction(user, note);
-		} else {
-			// 同じリアクションがすでにされていたら何もしない
-			return;
-		}
+	if (existReactions.some(r => r.reaction === reaction)) {
+		// 同じリアクションがすでにされていたら何もしない
+		return;
 	}
 
 	// Create reaction
@@ -50,7 +45,10 @@ export default async (user: User, note: Note, reaction?: string) => {
 		.where('id = :id', { id: note.id })
 		.execute();
 
-	Notes.increment({ id: note.id }, 'score', 1);
+
+	if (existReactions.length === 0) {
+		Notes.increment({ id: note.id }, 'score', 1);
+	}
 
 	perUserReactionsChart.update(user, note);
 
@@ -109,7 +107,7 @@ export default async (user: User, note: Note, reaction?: string) => {
 	}
 
 	//#region 配信
-	if (Users.isLocalUser(user) && !note.localOnly) {
+	if (existReactions.length === 0 && Users.isLocalUser(user) && !note.localOnly) {
 		const content = renderActivity(await renderLike(inserted, note));
 		const dm = new DeliverManager(user, content);
 		if (note.userHost !== null) {

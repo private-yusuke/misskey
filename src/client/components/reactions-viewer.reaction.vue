@@ -1,7 +1,7 @@
 <template>
 <button
 	class="hkzvhatu _button"
-	:class="{ reacted: note.myReaction == reaction, canToggle }"
+	:class="{ reacted: note.myReactions.includes(reaction), canToggle }"
 	@click="toggleReaction(reaction)"
 	v-if="count > 0"
 	@touchstart="onMouseover"
@@ -69,17 +69,10 @@ export default Vue.extend({
 		toggleReaction() {
 			if (!this.canToggle) return;
 
-			const oldReaction = this.note.myReaction;
-			if (oldReaction) {
+			if (this.note.myReactions.includes(this.reaction)) {
 				this.$root.api('notes/reactions/delete', {
-					noteId: this.note.id
-				}).then(() => {
-					if (oldReaction !== this.reaction) {
-						this.$root.api('notes/reactions/create', {
-							noteId: this.note.id,
-							reaction: this.reaction
-						});
-					}
+					noteId: this.note.id,
+					reaction: this.reaction
 				});
 			} else {
 				this.$root.api('notes/reactions/create', {

@@ -9,12 +9,16 @@ import { Note } from '../../../models/entities/note';
 import { NoteReactions, Users, Notes } from '../../../models';
 import { decodeReaction } from '../../../misc/reaction-lib';
 
-export default async (user: User, note: Note) => {
+export default async (user: User, note: Note, reaction?: string) => {
 	// if already unreacted
-	const exist = await NoteReactions.findOne({
+	const findQuery = {
 		noteId: note.id,
 		userId: user.id,
-	});
+	};
+	if (reaction) {
+		findQuery['reaction'] = reaction;
+	}
+	const exist = await NoteReactions.findOne(findQuery);
 
 	if (exist == null) {
 		throw new IdentifiableError('60527ec9-b4cb-4a88-a6bd-32d3ad26817d', 'not reacted');
@@ -27,6 +31,11 @@ export default async (user: User, note: Note) => {
 		throw new IdentifiableError('60527ec9-b4cb-4a88-a6bd-32d3ad26817d', 'not reacted');
 	}
 
+	const other = await NoteReactions.findOne({
+		noteId: note.id,
+		userId: user.id,
+	});
+
 	// Decrement reactions count
 	const sql = `jsonb_set("reactions", '{${exist.reaction}}', (COALESCE("reactions"->>'${exist.reaction}', '0')::int - 1)::text::jsonb)`;
 	await Notes.createQueryBuilder().update()
@@ -36,7 +45,9 @@ export default async (user: User, note: Note) => {
 		.where('id = :id', { id: note.id })
 		.execute();
 
-	Notes.decrement({ id: note.id }, 'score', 1);
+	if (other == null) {
+		Notes.decrement({ id: note.id }, 'score', 1);
+	}
 
 	publishNoteStream(note.id, 'unreacted', {
 		reaction: decodeReaction(exist.reaction).reaction,
@@ -44,7 +55,7 @@ export default async (user: User, note: Note) => {
 	});
 
 	//#region 配信
-	if (Users.isLocalUser(user) && !note.localOnly) {
+	if (other == null && Users.isLocalUser(user) && !note.localOnly) {
 		const content = renderActivity(renderUndo(await renderLike(exist, note), user));
 		const dm = new DeliverManager(user, content);
 		if (note.userHost !== null) {

@@ -32,6 +32,13 @@ export const meta = {
 				'en-US': 'Target note ID'
 			}
 		},
+
+		reaction: {
+			validator: $.optional.str,
+			desc: {
+				'ja-JP': 'リアクションの種類'
+			}
+		}
 	},
 
 	errors: {
@@ -54,7 +61,7 @@ export default define(meta, async (ps, user) => {
 		if (e.id === '9725d0ce-ba28-4dde-95a7-2cbb2c15de24') throw new ApiError(meta.errors.noSuchNote);
 		throw e;
 	});
-	await deleteReaction(user, note).catch(e => {
+	await deleteReaction(user, note, ps.reaction || undefined).catch(e => {
 		if (e.id === '60527ec9-b4cb-4a88-a6bd-32d3ad26817d') throw new ApiError(meta.errors.notReacted);
 		throw e;
 	});

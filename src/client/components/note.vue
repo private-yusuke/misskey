@@ -71,11 +71,8 @@
 				<button v-else class="button _button">
 					<fa :icon="faBan"/>
 				</button>
-				<button v-if="appearNote.myReaction == null" class="button _button" @click="react()" ref="reactButton">
+				<button class="button _button" @click="react()" ref="reactButton">
 					<fa :icon="faPlus"/>
-				</button>
-				<button v-if="appearNote.myReaction != null" class="button _button reacted" @click="undoReact(appearNote)" ref="reactButton">
-					<fa :icon="faMinus"/>
 				</button>
 				<button class="button _button" @click="menu()" ref="menuButton">
 					<fa :icon="faEllipsisH"/>
@@ -366,7 +363,7 @@ export default Vue.extend({
 					};
 
 					if (body.userId === this.$store.state.i.id) {
-						n.myReaction = reaction;
+						n.myReactions.push(reaction);
 					}
 
 					this.updateAppearNote(n);
@@ -391,7 +388,7 @@ export default Vue.extend({
 					};
 
 					if (body.userId === this.$store.state.i.id) {
-						n.myReaction = null;
+						n.myReactions = n.myReactions.filter(r => r !== reaction);
 					}
 
 					this.updateAppearNote(n);
@@ -495,14 +492,6 @@ export default Vue.extend({
 			this.$root.api('notes/reactions/create', {
 				noteId: this.appearNote.id,
 				reaction: reaction
-			});
-		},
-
-		undoReact(note) {
-			const oldReaction = note.myReaction;
-			if (!oldReaction) return;
-			this.$root.api('notes/reactions/delete', {
-				noteId: note.id
 			});
 		},
 
