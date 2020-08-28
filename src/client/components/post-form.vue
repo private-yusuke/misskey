@@ -183,7 +183,7 @@ export default Vue.extend({
 			return !this.posting &&
 				!this.uploading &&
 				(1 <= this.text.length || 1 <= this.files.length || this.poll || this.renote) &&
-				(length(this.text.trim()) <= this.max) &&
+				(length(this.buildText().trim()) <= this.max) &&
 				(!this.poll || this.pollChoices.length >= 2);
 		},
 
