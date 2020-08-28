@@ -1,13 +1,16 @@
 import $ from 'cafy';
 import es from '../../../../db/elasticsearch';
 import define from '../../define';
-import { Notes } from '../../../../models';
+import { Notes, Users } from '../../../../models';
 import { In } from 'typeorm';
 import { ID } from '../../../../misc/cafy-id';
 import config from '../../../../config';
 import { makePaginationQuery } from '../../common/make-pagination-query';
 import { generateVisibilityQuery } from '../../common/generate-visibility-query';
 import { generateMutedUserQuery } from '../../common/generate-muted-user-query';
+import { toPunyNullable } from '../../../../misc/convert-host';
+import { IUser } from '../../../../models/entities/user';
+import { safeForSql } from '../../../../misc/safe-for-sql';
 
 export const meta = {
 	desc: {
@@ -65,8 +68,140 @@ export const meta = {
 export default define(meta, async (ps, me) => {
 	if (es == null) {
 		const query = makePaginationQuery(Notes.createQueryBuilder('note'), ps.sinceId, ps.untilId)
-			.andWhere('note.text ILIKE :q', { q: `%${ps.query}%` })
 			.leftJoinAndSelect('note.user', 'user');
+
+		const fromRegex = /^from:@?([\w-]+)(?:@([\w.-]+))?$/;
+		const toRegex = /^to:@?([\w-]+)(?:@([\w.-]+))?$/;
+		const pollsRegex = /^(poll|polls)$/i;
+		const cwRegex = /cw/i;
+		const filterRegex = /^filter:(\w+)$/;
+		const excludeRegex = /^-([\w:@.-]+)$/;
+		const filetypeRegex = /^filetype:(\w+)$/;
+		const tokens = ps.query.trim().match(/(?:[^\s"']+|['"][^'"]*["'])+/g);
+		if (tokens == null) return [];
+		for (let token of tokens) {
+			token = token.replace(/(['"])/g, '');
+			const matchFrom = token.match(fromRegex);
+			if (matchFrom) {
+				const user = await getUser(matchFrom[1], matchFrom[2]);
+				if (user == null) {
+					return [];
+				} else {
+					query.andWhere(`note.userId = '${user.id}'`);
+					continue;
+				}
+			}
+
+			const matchFileType = token.match(filetypeRegex);
+			if (matchFileType) {
+				if (matchFileType[1] === 'all') {
+					query.andWhere('note.fileIds != :fileId', { fileId: '{}' });
+					continue;
+				} else {
+					return [];
+				}
+			}
+
+			const matchTo = token.match(toRegex);
+			if (matchTo) {
+				const user = await getUser(matchTo[1], matchTo[2]);
+				if (user == null) {
+					return [];
+				} else {
+					query.andWhere(`'${user.id}' = ANY (note.mentions)`);
+					continue;
+				}
+			}
+
+			const matchSince = token.match(/^since:(\d{4}-\d{1,2}-\d{1,2})/);
+			if (matchSince) {
+				const since = new Date(`${matchSince[1]} 00:00:00 +0900`);
+				if (isNaN(since.getTime())) return [];
+				query.andWhere('note.createdAt >= :since', { since: since });
+				continue;
+			}
+
+			const matchUntil = token.match(/^until:(\d{4}-\d{1,2}-\d{1,2})/);
+			if (matchUntil) {
+				const until = new Date(`${matchUntil[1]} 23:59:59 +0900`);
+				if (isNaN(until.getTime())) return [];
+				query.andWhere('note.createdAt <= :until', { until: until });
+				continue;
+			}
+
+			const matchFilter = token.match(filterRegex);
+			if (matchFilter) {
+				const matchPolls = matchFilter[1].match(pollsRegex);
+				if (matchPolls) {
+					query.andWhere('note.hasPoll = :withPolls', { withPolls: true });
+					continue;
+				}
+
+				const matchCw = matchFilter[1].match(cwRegex);
+				if (matchCw) {
+					query.andWhere('note.cw IS NOT NULL');
+					continue;
+				}
+				return [];
+			}
+
+			const matchExcludeWord = token.match(excludeRegex);
+			if (matchExcludeWord) {
+				const matchFrom = matchExcludeWord[1].match(fromRegex);
+				if (matchFrom) {
+					const user = await getUser(matchFrom[1], matchFrom[2]);
+					if (user == null) {
+						return [];
+					} else {
+						query.andWhere(`note.userId != '${user.id}'`);
+						continue;
+					}
+				}
+
+				const matchToUser = matchExcludeWord[1].match(toRegex);
+				if (matchToUser) {
+					const user = await getUser(matchToUser[1], matchToUser[2]);
+					if (user == null) {
+						return[];
+					} else {
+						query.andWhere(`'${user.id}' != ALL (note.mentions)`);
+						continue;
+					}
+				}
+
+				const matchFilter = matchExcludeWord[1].match(filterRegex);
+				if (matchFilter) {
+					const matchPolls = matchFilter[1].match(pollsRegex);
+					if (matchPolls) {
+						query.andWhere('note.hasPoll = :withPolls', { withPolls: false });
+						continue;
+					}
+
+					const matchCw = matchFilter[1].match(cwRegex);
+					if (matchCw) {
+						query.andWhere('note.cw IS NULL');
+						continue;
+					}
+					return [];
+				}
+
+				const matchFileType = matchExcludeWord[1].match(filetypeRegex);
+				if (matchFileType) {
+					if (matchFileType[1] === 'all') {
+						query.andWhere('note.fileIds = :fileId', { fileId: '{}' });
+						continue;
+					} else {
+						return [];
+					}
+				}
+
+				if (!safeForSql(matchExcludeWord[1])) return [];
+				query.andWhere(`note.text NOT ILIKE '%${matchExcludeWord[1]}%'`);
+				continue;
+			}
+			if (!safeForSql(token)) return [];
+			query.andWhere(`note.text ILIKE '%${token}%'`);
+		}
 
 		generateVisibilityQuery(query, me);
 		if (me) generateMutedUserQuery(query, me);
@@ -136,3 +271,14 @@ export default define(meta, async (ps, me) => {
 		return await Notes.packMany(notes, me);
 	}
 });
+
+const getUser = async (username: string, host: string): Promise<IUser | null>  => {
+	if (!safeForSql(username)) return null;
+	if (!safeForSql(host)) return null;
+	const user = await Users.findOne({
+		usernameLower: username.toLowerCase(),
+		host: toPunyNullable(host),
+	});
+	if (user == null) return null;
+	return user;
+};
