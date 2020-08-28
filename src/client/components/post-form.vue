@@ -9,7 +9,7 @@
 		<button v-if="!fixed" class="cancel _button" @click="cancel"><fa :icon="faTimes"/></button>
 		<div>
 			<span class="local-only" v-if="localOnly" v-text="$t('_visibility.localOnly')" />
-			<span class="text-count" :class="{ over: trimmedLength(text) > max }">{{ max - trimmedLength(text) }}</span>
+			<span class="text-count" :class="{ over: trimmedLength(buildText()) > max }">{{ max - trimmedLength(buildText()) }}</span>
 			<button class="_button visibility" @click="setVisibility" ref="visibilityButton" v-tooltip="$t('visibility')">
 				<span v-if="visibility === 'public'"><fa :icon="faGlobe"/></span>
 				<span v-if="visibility === 'home'"><fa :icon="faHome"/></span>
@@ -557,17 +557,15 @@ export default Vue.extend({
 		buildText() {
 			let text = this.text;
 			if (this.useHashtag) {
-				text += "\n" + this.hashtag;
+				return text += "\n" + this.hashtag;
+			} else {
+				return text;
 			}
-			if (text === '') {
-				return undefined;
-			}
-			return text;
 		},
 
 		async post() {
 			let data = {
-				text: this.buildText(),
+				text: this.buildText() || undefined,
 				fileIds: this.files.length > 0 ? this.files.map(f => f.id) : undefined,
 				replyId: this.reply ? this.reply.id : undefined,
 				renoteId: this.renote ? this.renote.id : this.quoteId ? this.quoteId : undefined,
