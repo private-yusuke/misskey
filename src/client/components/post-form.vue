@@ -446,6 +446,7 @@ export default Vue.extend({
 		},
 
 		onKeydown(e) {
+			if (e.which === 27 && this.fixed) this.$refs.text.blur();
 			if ((e.which == 10 || e.which == 13) && (e.ctrlKey || e.metaKey) && this.canPost) this.post();
 		},
 
@@ -593,6 +594,7 @@ export default Vue.extend({
 			}).catch(err => {
 			}).then(() => {
 				this.posting = false;
+				if (this.fixed) this.$nextTick(() => this.focus());
 			});
 
 			if (this.text && this.text != '') {
