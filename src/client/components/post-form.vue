@@ -183,7 +183,7 @@ export default Vue.extend({
 			return !this.posting &&
 				!this.uploading &&
 				(1 <= this.text.length || 1 <= this.files.length || this.poll || this.renote) &&
-				(length(this.buildText().trim()) <= this.max) &&
+				(length(this.buildText()) <= this.max) &&
 				(!this.poll || this.pollChoices.length >= 2);
 		},
 
@@ -555,9 +555,9 @@ export default Vue.extend({
 		},
 
 		buildText() {
-			let text = this.text;
+			let text = this.text.trim();
 			if (this.useHashtag) {
-				return text += "\n" + this.hashtag;
+				return text += "\n" + this.hashtag.trim();
 			} else {
 				return text;
 			}
