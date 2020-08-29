@@ -26,7 +26,7 @@ export const defaultDeviceUserSettings = {
 	localOnly: false,
 	widgets: [],
 	tl: {
-		src: 'local'
+		src: 'social'
 	},
 	menu: [
 		'notifications',
