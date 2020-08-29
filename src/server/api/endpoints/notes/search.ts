@@ -77,7 +77,7 @@ export default define(meta, async (ps, me) => {
 		const filterRegex = /^filter:(\w+)$/;
 		const excludeRegex = /^-([\w:@.-]+)$/;
 		const filetypeRegex = /^filetype:(\w+)$/;
-		const tokens = ps.query.trim().match(/(?:[^\s"']+|['"][^'"]*["'])+/g);
+		const tokens = ps.query.trim().match(/(?:[^\s　"']+|['"][^'"]*["'])+/g);
 		if (tokens == null) return [];
 		for (let token of tokens) {
 			token = token.replace(/(['"])/g, '');
