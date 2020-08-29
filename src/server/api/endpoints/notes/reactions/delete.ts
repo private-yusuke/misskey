@@ -19,9 +19,8 @@ export const meta = {
 	kind: 'write:reactions',
 
 	limit: {
-		duration: ms('1hour'),
-		max: 60,
-		minInterval: ms('3sec')
+		duration: ms('10sec'),
+		max: 5,
 	},
 
 	params: {
