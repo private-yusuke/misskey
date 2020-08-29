@@ -1,7 +1,7 @@
 import Vuex from 'vuex';
 import createPersistedState from 'vuex-persistedstate';
 import * as nestedProperty from 'nested-property';
-import { faTerminal, faHashtag, faBroadcastTower, faFireAlt, faSearch, faStar, faAt, faListUl, faUserClock, faUsers, faCloud, faGamepad, faFileAlt, faSatellite, faDoorClosed, faColumns } from '@fortawesome/free-solid-svg-icons';
+import { faSatelliteDish, faTerminal, faHashtag, faBroadcastTower, faFireAlt, faSearch, faStar, faAt, faListUl, faUserClock, faUsers, faCloud, faGamepad, faFileAlt, faSatellite, faDoorClosed, faColumns } from '@fortawesome/free-solid-svg-icons';
 import { faBell, faEnvelope, faComments } from '@fortawesome/free-regular-svg-icons';
 import { AiScript, utils, values } from '@syuilo/aiscript';
 import { apiUrl, deckmode } from './config';
@@ -60,7 +60,7 @@ export const defaultDeviceSettings = {
 	loadRawImages: false,
 	alwaysShowNsfw: false,
 	useOsNativeEmojis: false,
-	autoReload: false,
+	serverDisconnectedBehavior: 'quiet',
 	accounts: [],
 	recentEmojis: [],
 	themes: [],
@@ -92,6 +92,7 @@ export const defaultDeviceSettings = {
 	sfxAntenna: 'syuilo/triple',
 	timestampFormat: 'relative',
 	enableFocusReactionEmojiInput: true,
+	sfxChannel: 'syuilo/square-pico',
 	userData: {},
 };
 
@@ -108,6 +109,7 @@ export default () => new Vuex.Store({
 		i: null,
 		pendingApiRequestsCount: 0,
 		spinner: null,
+		fullView: false,
 
 		// Plugin
 		pluginContexts: new Map<string, AiScript>(),
@@ -214,6 +216,11 @@ export default () => new Vuex.Store({
 				get show() { return getters.isSignedIn; },
 				to: '/my/pages',
 			},
+			channels: {
+				title: 'channel',
+				icon: faSatelliteDish,
+				to: '/channels',
+			},
 			games: {
 				title: 'games',
 				icon: faGamepad,
@@ -248,6 +255,10 @@ export default () => new Vuex.Store({
 
 		updateIKeyValue(state, { key, value }) {
 			state.i[key] = value;
+		},
+
+		setFullView(state, v) {
+			state.fullView = v;
 		},
 
 		initPlugin(state, { plugin, aiscript }) {
