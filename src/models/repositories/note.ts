@@ -251,9 +251,7 @@ export class NoteRepository extends Repository<Note> {
 
 				poll: note.hasPoll ? populatePoll() : undefined,
 
-				...(meId ? {
-					myReactions: populateMyReactions()
-				} : {})
+				myReactions: (meId ? populateMyReactions() : [])
 			} : {})
 		});
 
