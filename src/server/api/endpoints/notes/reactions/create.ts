@@ -1,4 +1,5 @@
 import $ from 'cafy';
+import * as ms from 'ms';
 import { ID } from '../../../../../misc/cafy-id';
 import createReaction from '../../../../../services/note/reaction/create';
 import define from '../../../define';
