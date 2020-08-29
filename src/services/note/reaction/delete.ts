@@ -7,18 +7,15 @@ import { IdentifiableError } from '../../../misc/identifiable-error';
 import { User, IRemoteUser } from '../../../models/entities/user';
 import { Note } from '../../../models/entities/note';
 import { NoteReactions, Users, Notes } from '../../../models';
-import { decodeReaction } from '../../../misc/reaction-lib';
+import { convertLegacyReaction, decodeReaction } from '../../../misc/reaction-lib';
 
 export default async (user: User, note: Note, reaction?: string) => {
 	// if already unreacted
-	const findQuery = {
+	const existReactions = await NoteReactions.find({
 		noteId: note.id,
 		userId: user.id,
-	};
-	if (reaction) {
-		findQuery['reaction'] = reaction;
-	}
-	const exist = await NoteReactions.findOne(findQuery);
+	});
+	const exist = existReactions.find(r => convertLegacyReaction(r.reaction) === reaction);
 
 	if (exist == null) {
 		throw new IdentifiableError('60527ec9-b4cb-4a88-a6bd-32d3ad26817d', 'not reacted');
@@ -30,11 +27,6 @@ export default async (user: User, note: Note, reaction?: string) => {
 	if (result.affected !== 1) {
 		throw new IdentifiableError('60527ec9-b4cb-4a88-a6bd-32d3ad26817d', 'not reacted');
 	}
-
-	const other = await NoteReactions.findOne({
-		noteId: note.id,
-		userId: user.id,
-	});
 
 	// Decrement reactions count
 	const sql = `jsonb_set("reactions", '{${exist.reaction}}', (COALESCE("reactions"->>'${exist.reaction}', '0')::int - 1)::text::jsonb)`;
@@ -53,7 +45,7 @@ export default async (user: User, note: Note, reaction?: string) => {
 		.andWhere(`"reactions"->>'${reaction}' = '0'`)
 		.execute();
 
-	if (other == null) {
+	if (existReactions.length === 1) {
 		Notes.decrement({ id: note.id }, 'score', 1);
 	}
 
@@ -63,7 +55,7 @@ export default async (user: User, note: Note, reaction?: string) => {
 	});
 
 	//#region 配信
-	if (other == null && Users.isLocalUser(user) && !note.localOnly) {
+	if (existReactions.length === 1 && Users.isLocalUser(user) && !note.localOnly) {
 		const content = renderActivity(renderUndo(await renderLike(exist, note), user));
 		const dm = new DeliverManager(user, content);
 		if (note.userHost !== null) {
