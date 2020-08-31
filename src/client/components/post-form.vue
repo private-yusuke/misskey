@@ -210,6 +210,8 @@ export default Vue.extend({
 		},
 
 		useHashtag() {
+			// 削除して編集のときは useHashtag の状態を更新させない
+			if (this.initialNote) return;
 			this.$store.commit('deviceUser/setUseHashtag', this.useHashtag);
 		},
 
@@ -332,6 +334,7 @@ export default Vue.extend({
 				this.visibility = init.visibility;
 				this.localOnly = init.localOnly;
 				this.quoteId = init.renote ? init.renote.id : null;
+				this.useHashtag = false;
 			}
 
 			this.$nextTick(() => this.watch());
