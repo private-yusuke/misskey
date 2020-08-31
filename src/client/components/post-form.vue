@@ -207,7 +207,15 @@ export default Vue.extend({
 	watch: {
 		localOnly() {
 			this.$store.commit('deviceUser/setLocalOnly', this.localOnly);
-		}
+		},
+
+		useHashtag() {
+			this.$store.commit('deviceUser/setUseHashtag', this.useHashtag);
+		},
+
+		hashtag() {
+			this.$store.commit('deviceUser/setHashtag', this.hashtag);
+		},
 	},
 
 	mounted() {
@@ -301,11 +309,8 @@ export default Vue.extend({
 						});
 					}
 				}
-				const draft_hashtag = JSON.parse(localStorage.getItem('drafts') || '{}')['hashtag'];
-				if (draft_hashtag) {
-					this.useHashtag = draft_hashtag.useHashtag;
-					this.hashtag = draft_hashtag.hashtag;
-				}
+				this.useHashtag = this.$store.state.deviceUser.useHashtag;
+				this.hashtag = this.$store.state.deviceUser.hashtag;
 			}
 
 			// 削除して編集
@@ -342,8 +347,6 @@ export default Vue.extend({
 			this.$watch('files', () => this.saveDraft());
 			this.$watch('visibility', () => this.saveDraft());
 			this.$watch('localOnly', () => this.saveDraft());
-			this.$watch('useHashtag', () => this.saveDraft());
-			this.$watch('hashtag', () => this.saveDraft());
 		},
 
 		trimmedLength(text: string) {
@@ -555,12 +558,6 @@ export default Vue.extend({
 					poll: this.poll && this.$refs.poll ? (this.$refs.poll as any).get() : undefined
 				}
 			};
-
-			data['hashtag'] = {
-				useHashtag: this.useHashtag,
-				hashtag: this.hashtag
-			};
-
 			localStorage.setItem('drafts', JSON.stringify(data));
 		},
 

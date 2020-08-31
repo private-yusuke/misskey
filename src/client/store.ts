@@ -24,6 +24,8 @@ export const defaultSettings = {
 export const defaultDeviceUserSettings = {
 	visibility: 'public',
 	localOnly: false,
+	useHashtag: false,
+	hashtag: '',
 	widgets: [],
 	tl: {
 		src: 'social'
@@ -475,6 +477,14 @@ export default () => new Vuex.Store({
 
 				setLocalOnly(state, localOnly) {
 					state.localOnly = localOnly;
+				},
+
+				setUseHashtag(state, useHashtag) {
+					state.useHashtag = useHashtag;
+				},
+
+				setHashtag(state, hashtag) {
+					state.hashtag = hashtag;
 				},
 
 				setWidgets(state, widgets) {
