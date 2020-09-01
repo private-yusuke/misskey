@@ -166,6 +166,17 @@ export class UserProfile {
 	})
 	public includingNotificationTypes: typeof notificationTypes[number][] | null;
 
+	@Index()
+	@Column('boolean', {
+		default: false
+	})
+	public enableWebhookNotification: boolean;
+
+	@Column('varchar', {
+		length: 256, nullable: true,
+	})
+	public webhookUrl: string | null;
+
 	//#region Denormalized fields
 	@Index()
 	@Column('varchar', {
