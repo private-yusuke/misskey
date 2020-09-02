@@ -31,6 +31,7 @@
 	<x-drive class="_vMargin"/>
 	<x-mute-block class="_vMargin"/>
 	<x-word-mute class="_vMargin"/>
+	<x-webhook class="_vMargin"/>
 	<x-security class="_vMargin"/>
 	<x-2fa class="_vMargin"/>
 	<x-integration class="_vMargin"/>
@@ -52,6 +53,7 @@ import XDrive from './drive.vue';
 import XReactionSetting from './reaction.vue';
 import XMuteBlock from './mute-block.vue';
 import XWordMute from './word-mute.vue';
+import XWebhook from './webhook.vue';
 import XSecurity from './security.vue';
 import X2fa from './2fa.vue';
 import XIntegration from './integration.vue';
@@ -74,6 +76,7 @@ export default Vue.extend({
 		XReactionSetting,
 		XMuteBlock,
 		XWordMute,
+		XWebhook,
 		XSecurity,
 		X2fa,
 		XIntegration,

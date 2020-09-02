@@ -152,6 +152,21 @@ export const meta = {
 		includingNotificationTypes: {
 			validator: $.optional.arr($.str.or(notificationTypes as unknown as string[]))
 		},
+
+		enableWebhookNotification: {
+			validator: $.optional.bool,
+			desc: {
+				'ja-JP': 'Webhook 通知を有効にするか否か'
+			}
+		},
+
+		webhookUrl: {
+			// TODO: URL validation
+			validator: $.optional.nullable.str.max(256),
+			desc: {
+				'ja-JP': 'Webhook 通知の POST 先 URL'
+			}
+		},
 	},
 
 	errors: {
@@ -215,6 +230,8 @@ export default define(meta, async (ps, user, token) => {
 	if (typeof ps.autoWatch === 'boolean') profileUpdates.autoWatch = ps.autoWatch;
 	if (typeof ps.injectFeaturedNote === 'boolean') profileUpdates.injectFeaturedNote = ps.injectFeaturedNote;
 	if (typeof ps.alwaysMarkNsfw === 'boolean') profileUpdates.alwaysMarkNsfw = ps.alwaysMarkNsfw;
+	if (typeof ps.enableWebhookNotification === 'boolean') profileUpdates.enableWebhookNotification = ps.enableWebhookNotification;
+	if (ps.webhookUrl !== undefined) profileUpdates.webhookUrl = ps.webhookUrl;
 
 	if (ps.avatarId) {
 		const avatar = await DriveFiles.findOne(ps.avatarId);
