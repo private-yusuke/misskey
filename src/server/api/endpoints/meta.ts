@@ -143,6 +143,7 @@ export default define(meta, async (ps, me) => {
 		enableDiscordIntegration: instance.enableDiscordIntegration,
 
 		enableServiceWorker: instance.enableServiceWorker,
+		enableWebhookNotification: instance.enableWebhookNotification,
 	};
 
 	if (ps.detail) {
