@@ -12,6 +12,7 @@
 		</mk-input>
 	</div>
 	<div class="_footer">
+		<mk-button @click="test()" inline :disabled="!url">{{ $t('_webhookNotification.test') }}</mk-button>
 		<mk-button @click="save(true)" primary inline :disabled="!changed"><fa :icon="faSave"/> {{ $t('save') }}</mk-button>
 	</div>
 </section>
@@ -67,6 +68,19 @@ export default Vue.extend({
 				this.$root.dialog({
 					type: 'error',
 					text: err.id,
+				});
+			});
+		},
+
+		test() {
+			this.save(false);
+			// ここではジョブキューに追加するだけにして、送信エラーは"通知"でユーザーに知らせる
+			this.$root.api('notifications/webhook-test').then(() => {
+				console.log('postJobQueue Add');
+			}).catch((err) => {
+				this.$root.dialog({
+					type: 'error',
+					text: err,
 				});
 			});
 		},
