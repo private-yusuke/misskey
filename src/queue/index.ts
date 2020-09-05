@@ -9,12 +9,14 @@ import processDeliver from './processors/deliver';
 import processInbox from './processors/inbox';
 import processDb from './processors/db';
 import procesObjectStorage from './processors/object-storage';
+import processWebhook from './processors/webhook';
 import { queueLogger } from './logger';
 import { DriveFile } from '../models/entities/drive-file';
 import { getJobInfo } from './get-job-info';
 import { IActivity } from '../remote/activitypub/type';
+import { notificationType, notificationBody } from '../services/push-notification';
 
-function initializeQueue(name: string, limitPerSec = -1) {
+function initializeQueue(name: string, limitPerSec = -1, limitDuration?: number, groupKey?: string) {
 	return new Queue(name, {
 		redis: {
 			port: config.redis.port,
@@ -23,9 +25,11 @@ function initializeQueue(name: string, limitPerSec = -1) {
 			db: config.redis.db || 0,
 		},
 		prefix: config.redis.prefix ? `${config.redis.prefix}:queue` : 'queue',
+		// deliver, inbox (5/5s)との互換性のため
 		limiter: limitPerSec > 0 ? {
-			max: limitPerSec * 5,
-			duration: 5000
+			max: limitDuration ? limitPerSec : limitPerSec * 5,
+			duration: limitDuration || 5000,
+			groupKey: groupKey,
 		} : undefined
 	});
 }
@@ -34,6 +38,13 @@ export type InboxJobData = {
 	activity: IActivity,
 	/** HTTP-Signature */
 	signature: httpSignature.IParsedSignature
+};
+
+export type PostWebhookJobData = {
+	userId: string,
+	type: notificationType,
+	body: notificationBody,
+	url: string,
 };
 
 function renderError(e: Error): any {
@@ -48,11 +59,13 @@ export const deliverQueue = initializeQueue('deliver', config.deliverJobPerSec |
 export const inboxQueue = initializeQueue('inbox', config.inboxJobPerSec || 16);
 export const dbQueue = initializeQueue('db');
 export const objectStorageQueue = initializeQueue('objectStorage');
+export const webhookQueue = initializeQueue('webhook', config.webhookJobPerSec || 1, 1000, 'userId');
 
 const deliverLogger = queueLogger.createSubLogger('deliver');
 const inboxLogger = queueLogger.createSubLogger('inbox');
 const dbLogger = queueLogger.createSubLogger('db');
 const objectStorageLogger = queueLogger.createSubLogger('objectStorage');
+const webhookLogger = queueLogger.createSubLogger('webhook');
 
 deliverQueue
 	.on('waiting', (jobId) => deliverLogger.debug(`waiting id=${jobId}`))
@@ -85,6 +98,14 @@ objectStorageQueue
 	.on('failed', (job, err) => objectStorageLogger.warn(`failed(${err}) id=${job.id}`, { job, e: renderError(err) }))
 	.on('error', (job: any, err: Error) => objectStorageLogger.error(`error ${err}`, { job, e: renderError(err) }))
 	.on('stalled', (job) => objectStorageLogger.warn(`stalled id=${job.id}`));
+
+webhookQueue
+	.on('waiting', (jobId) => webhookLogger.debug(`waiting id=${jobId}`))
+	.on('active', (job) => webhookLogger.debug(`active ${getJobInfo(job, true)}`))
+	.on('completed', (job, result) => webhookLogger.debug(`completed(${result}) ${getJobInfo(job, true)}`))
+	.on('failed', (job, err) => webhookLogger.warn(`failed(${err}) ${getJobInfo(job)} userId=${job.data.userId || 'none'}`, { job, e: renderError(err) }))
+	.on('error', (job: any, err: Error) => webhookLogger.error(`error ${err}`, { job, e: renderError(err) }))
+	.on('stalled', (job) => webhookLogger.warn(`stalled ${getJobInfo(job)} userId=${job.data.userId || 'none'}`));
 
 export function deliver(user: ILocalUser, content: any, to: any) {
 	if (content == null) return null;
@@ -213,12 +234,32 @@ export function createCleanRemoteFilesJob() {
 	});
 }
 
+export function postWebhookJob(userId: string, type: notificationType, body: notificationBody, url: string) {
+	const data = {
+		userId,
+		type,
+		body,
+		url,
+	};
+
+	return webhookQueue.add(data, {
+		attempts: config.webhookJobMaxAttempts || 5,
+		backoff: {
+			type: 'exponential',
+			delay: 1 * 1000,
+		},
+		removeOnComplete: true,
+		removeOnFail: true,
+	});
+}
+
 export default function() {
 	if (!program.onlyServer) {
 		deliverQueue.process(config.deliverJobConcurrency || 128, processDeliver);
 		inboxQueue.process(config.inboxJobConcurrency || 16, processInbox);
 		processDb(dbQueue);
 		procesObjectStorage(objectStorageQueue);
+		webhookQueue.process(processWebhook);
 	}
 }
 
@@ -232,4 +273,9 @@ export function destroy() {
 		inboxLogger.succ(`Cleaned ${jobs.length} ${status} jobs`);
 	});
 	inboxQueue.clean(0, 'delayed');
+
+	webhookQueue.once('cleaned', (jobs, status) => {
+		webhookLogger.succ(`Cleaned ${jobs.length} ${status} jobs`);
+	});
+	webhookQueue.clean(0, 'delayed');
 }
