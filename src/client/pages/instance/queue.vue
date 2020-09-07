@@ -9,6 +9,9 @@
 	<x-queue :connection="connection" domain="deliver">
 		<template #title><fa :icon="faExchangeAlt"/> Out</template>
 	</x-queue>
+	<x-queue :connection="connection" domain="webhook">
+		<template #title><fa :icon="faExchangeAlt"/> Webhook</template>
+	</x-queue>
 	<section class="_card">
 		<div class="_content">
 			<mk-button @click="clear()"><fa :icon="faTrashAlt"/> {{ $t('clearQueue') }}</mk-button>
