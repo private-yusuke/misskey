@@ -1,5 +1,5 @@
 import Xev from 'xev';
-import { deliverQueue, inboxQueue } from '../queue';
+import { deliverQueue, inboxQueue, webhookQueue } from '../queue';
 
 const ev = new Xev();
 
@@ -17,6 +17,7 @@ export default function() {
 
 	let activeDeliverJobs = 0;
 	let activeInboxJobs = 0;
+	let activeWebhookJobs = 0;
 
 	deliverQueue.on('global:active', () => {
 		activeDeliverJobs++;
@@ -26,9 +27,14 @@ export default function() {
 		activeInboxJobs++;
 	});
 
+	webhookQueue.on('global:active', () => {
+		activeWebhookJobs++;
+	});
+
 	async function tick() {
 		const deliverJobCounts = await deliverQueue.getJobCounts();
 		const inboxJobCounts = await inboxQueue.getJobCounts();
+		const webhookJobCounts = await webhookQueue.getJobCounts();
 
 		const stats = {
 			deliver: {
@@ -43,6 +49,12 @@ export default function() {
 				waiting: inboxJobCounts.waiting,
 				delayed: inboxJobCounts.delayed
 			},
+			webhook: {
+				activeSincePrevTick: activeWebhookJobs,
+				active: webhookJobCounts.active,
+				waiting: webhookJobCounts.waiting,
+				delayed: webhookJobCounts.delayed
+			},
 		};
 
 		ev.emit('queueStats', stats);
@@ -52,6 +64,7 @@ export default function() {
 
 		activeDeliverJobs = 0;
 		activeInboxJobs = 0;
+		activeWebhookJobs = 0;
 	}
 
 	tick();
