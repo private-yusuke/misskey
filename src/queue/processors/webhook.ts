@@ -6,8 +6,11 @@ import * as locale from '../../../locales/';
 import config from '../../config';
 import { notificationType, notificationBody } from '../../services/push-notification';
 import { PostWebhookJobData } from '..';
+import { createNotification } from '../../services/create-notification';
 
 export default async (job: Bull.Job<PostWebhookJobData>) => {
+	// 無限ループ防止
+	if ((job.data.body as any).type === 'app') return;
 	await fetch(job.data.url, {
 		method: 'POST',
 		headers: {
@@ -21,17 +24,21 @@ export default async (job: Bull.Job<PostWebhookJobData>) => {
 		throw 'network error (server side) or illegal URL';
 	})
 	.then((res) => {
-		if (res.ok) {
-			return 'Success';
-		} else {
-			const errorText = `${res.status} - ${res.statusText} - userId: ${job.data.userId}`;
-			// Rate Limit を超えている or POST 先サーバのエラー のためリトライ
-			if (res.status === 429 || (500 <= res.status && res.status < 600)) {
-				throw errorText;
-			}
-			// ユーザーによる Webhook URL の設定ミスなどのためスキップ
-			return `skip (URL setting miss?) ${errorText}`;
+		if (res.ok) return 'Success';
+
+		const errorText = `${res.status} - ${res.statusText} - userId: ${job.data.userId}`;
+		// Rate Limit を超えている or POST 先サーバのエラー のためリトライ
+		if (res.status === 429 || (500 <= res.status && res.status < 600)) {
+			throw errorText;
 		}
+
+		// ユーザーによる Webhook URL の設定ミスなどのためスキップ
+		res.text().then((text) => {
+			createNotification(job.data.userId, 'app', {
+				customBody: `Webhook Error: ${res.status} - ${res.statusText} - ${text} (${job.data.url})`,
+			});
+		});
+		return `skip (URL setting miss?) ${errorText}`;
 	});
 };
 
