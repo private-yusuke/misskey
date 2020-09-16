@@ -3,7 +3,7 @@
 	<div class="_title"><fa :icon="faLink"/> {{ $t('webhookNotification') }}</div>
 		<div class="_content">
 		<mk-info>{{ $t('_webhookNotification.description')}}</mk-info>
-		<mk-switch v-model="enableWebhook" @change="save()">
+		<mk-switch v-model="enableWebhook">
 			{{ $t('_webhookNotification.enable') }}
 		</mk-switch>
 		<mk-input v-model="url">
@@ -46,6 +46,9 @@ export default Vue.extend({
 
 	watch: {
 		url() {
+			this.changed = true;
+		},
+		enableWebhook() {
 			this.changed = true;
 		},
 	},
