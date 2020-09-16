@@ -54,8 +54,8 @@ export default Vue.extend({
 	},
 
 	methods: {
-		save(notify?: boolean) {
-			this.$root.api('i/update', {
+		async save(notify?: boolean) {
+			await this.$root.api('i/update', {
 				enableWebhookNotification: this.enableWebhook,
 				webhookUrl: this.url || null,
 			}).then(() => {
@@ -75,8 +75,8 @@ export default Vue.extend({
 			});
 		},
 
-		test() {
-			this.save(false);
+		async test() {
+			await this.save(false);
 			// ここではジョブキューに追加するだけにして、送信エラーは"通知"でユーザーに知らせる
 			this.$root.api('notifications/webhook-test').then(() => {
 				console.log('postJobQueue Add');
