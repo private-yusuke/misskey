@@ -4,6 +4,7 @@ import { ensure } from '../../../../prelude/ensure';
 import { postWebhookJob } from '../../../../queue';
 import { fetchMeta } from '../../../../misc/fetch-meta';
 import { ApiError } from '../../../api/error';
+import { Not } from 'typeorm';
 
 export const meta = {
 	desc: {
@@ -48,6 +49,7 @@ export default define(meta, async (ps, user) => {
 	const mostResent = await Notifications.findOne({
 		where: {
 			notifieeId: user.id,
+			type: Not('app'),
 		},
 		order: {
 			createdAt: 'DESC',
