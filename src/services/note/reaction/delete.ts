@@ -39,10 +39,10 @@ export default async (user: User, note: Note, reaction?: string) => {
 
 	await Notes.createQueryBuilder().update()
 		.set({
-			reactionTimestamps: () => `"reactionTimestamps" - '${reaction}'`,
+			reactionTimestamps: () => `"reactionTimestamps" - '${exist.reaction}'`,
 		})
 		.where('id = :id', { id: note.id })
-		.andWhere(`"reactions"->>'${reaction}' = '0'`)
+		.andWhere(`"reactions"->>'${exist.reaction}' = '0'`)
 		.execute();
 
 	if (existReactions.length === 1) {
