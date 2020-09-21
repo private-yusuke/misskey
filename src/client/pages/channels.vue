@@ -44,7 +44,8 @@ export default Vue.extend({
 			tab: 'featured',
 			featuredPagination: {
 				endpoint: 'channels/featured',
-				noPaging: true,
+				limit: 10,
+				offsetMode: true,
 			},
 			followingPagination: {
 				endpoint: 'channels/followed',

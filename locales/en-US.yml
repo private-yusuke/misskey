@@ -580,7 +580,7 @@ _channel:
   edit: "Edit channel"
   setBanner: "Set banner"
   removeBanner: "Remove banner"
-  featured: "Trending"
+  featured: "All"
   owned: "Owner"
   following: "Following"
   usersCount: "{n} Participants"

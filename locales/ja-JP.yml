@@ -585,7 +585,7 @@ _channel:
   edit: "チャンネルを編集"
   setBanner: "バナーを設定"
   removeBanner: "バナーを削除"
-  featured: "トレンド"
+  featured: "全て"
   owned: "管理中"
   following: "フォロー中"
   usersCount: "{n}人が参加中"
