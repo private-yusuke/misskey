@@ -119,6 +119,7 @@ export default Vue.extend({
 			users: [],
 			hashtags: [],
 			emojis: [],
+			items: [],
 			select: -1,
 			emojilist,
 			emojiDb: [] as EmojiDef[]
@@ -126,10 +127,6 @@ export default Vue.extend({
 	},
 
 	computed: {
-		items(): HTMLCollection {
-			return (this.$refs.suggests as Element).children;
-		},
-
 		useOsNativeEmojis(): boolean {
 			return this.$store.state.device.useOsNativeEmojis;
 		}
@@ -137,6 +134,7 @@ export default Vue.extend({
 
 	updated() {
 		this.setPosition();
+		this.items = (this.$refs.suggests as Element | undefined)?.children || [];
 	},
 
 	mounted() {
@@ -351,6 +349,7 @@ export default Vue.extend({
 
 		selectNext() {
 			if (++this.select >= this.items.length) this.select = 0;
+			if (this.items.length === 0) this.select = -1;
 			this.applySelect();
 		},
 
@@ -364,8 +363,10 @@ export default Vue.extend({
 				el.removeAttribute('data-selected');
 			}
 
-			this.items[this.select].setAttribute('data-selected', 'true');
-			(this.items[this.select] as any).focus();
+			if (this.select !== -1) {
+				this.items[this.select].setAttribute('data-selected', 'true');
+				(this.items[this.select] as any).focus();
+			}
 		},
 
 		chooseUser() {
