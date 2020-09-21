@@ -574,6 +574,7 @@ notificationSetting: "通知設定"
 notificationSettingDesc: "表示する通知の種別を選択してください。"
 useGlobalSetting: "グローバル設定を使う"
 useGlobalSettingDesc: "オンにすると、アカウントの通知設定が使用されます。オフにすると、個別に設定できるようになります。"
+autoShowCwContent: "CW 投稿の自動展開"
 
 _serverDisconnectedBehavior:
   reload: "自動でリロード"
@@ -1322,3 +1323,8 @@ _deck:
     list: "リスト"
     mentions: "あなた宛て"
     direct: "ダイレクト"
+
+_autoShowCwContent:
+  showAll: "すべての CW 投稿を自動で展開する"
+  showWords: "自動展開するキーワード"
+  showWordsDescription: "改行区切りでキーワードを入力します。キーワードが注釈または本文に含まれている場合のみ自動展開します。"

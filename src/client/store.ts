@@ -96,6 +96,8 @@ export const defaultDeviceSettings = {
 	enableFocusReactionEmojiInput: true,
 	sfxChannel: 'syuilo/square-pico',
 	userData: {},
+	autoShowCwContentAll: false,
+	showCwWords: [],
 };
 
 function copy<T>(data: T): T {
