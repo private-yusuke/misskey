@@ -138,7 +138,7 @@ export default Vue.extend({
 			const [antennas, lists, channels] = await Promise.all([
 				this.$root.api('antennas/list'),
 				this.$root.api('users/lists/list'),
-				this.$root.api('channels/followed'),
+				this.$root.api('channels/followed', { limit: 20 }),
 			]);
 			const antennaItems = antennas.map(antenna => ({
 				text: antenna.name,
