@@ -187,7 +187,11 @@ export default Vue.extend({
 		},
 
 		fetchJobs() {
-			this.$root.api(this.domain === 'inbox' ? 'admin/queue/inbox-delayed' : this.domain === 'deliver' ? 'admin/queue/deliver-delayed' : null, {}).then(jobs => {
+			const path = this.domain === 'inbox' ? 'admin/queue/inbox-delayed' :
+						this.domain === 'deliver' ? 'admin/queue/deliver-delayed' :
+						this.domain === 'webhook' ? 'admin/queue/webhook-delayed' :
+						null
+			this.$root.api(path, {}).then(jobs => {
 				this.jobs = jobs;
 			});
 		},

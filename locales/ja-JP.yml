@@ -574,6 +574,7 @@ notificationSetting: "通知設定"
 notificationSettingDesc: "表示する通知の種別を選択してください。"
 useGlobalSetting: "グローバル設定を使う"
 useGlobalSettingDesc: "オンにすると、アカウントの通知設定が使用されます。オフにすると、個別に設定できるようになります。"
+webhookNotification: "Webhook 通知"
 
 _serverDisconnectedBehavior:
   reload: "自動でリロード"
@@ -1322,3 +1323,11 @@ _deck:
     list: "リスト"
     mentions: "あなた宛て"
     direct: "ダイレクト"
+
+_webhookNotification:
+  description: "Slack や Discord にて発行した Webhook URL に Slack 形式の JSON で POST します。インスタンス側の設定で許可されている場合のみ動作します。"
+  enable: "Webhook 通知を有効にする"
+  url: "POST 先 URL"
+  urlDescription: "Slack の場合は URL をそのまま入力します。Discord の場合は URL を入力し後、末尾に /slack を追加します。"
+  test: "送信テスト"
+  instanceDescription: "Webhook 通知を行うには有効にする必要があります。"

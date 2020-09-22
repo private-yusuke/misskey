@@ -145,7 +145,7 @@ export default define(meta, async (ps, me) => {
 		enableDiscordIntegration: instance.enableDiscordIntegration,
 
 		enableServiceWorker: instance.enableServiceWorker,
-
+		enableWebhookNotification: instance.enableWebhookNotification,
 		proxyAccountName: proxyAccount ? proxyAccount.username : null,
 	};
 
