@@ -241,6 +241,11 @@ export class Meta {
 	@Column('boolean', {
 		default: false,
 	})
+	public enableWebhookNotification: boolean;
+
+	@Column('boolean', {
+		default: false,
+	})
 	public enableTwitterIntegration: boolean;
 
 	@Column('varchar', {

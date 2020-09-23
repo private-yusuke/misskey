@@ -130,6 +130,9 @@
 			<x-queue :connection="queueConnection" domain="deliver" class="queue">
 				<template #title><fa :icon="faExchangeAlt"/> Out</template>
 			</x-queue>
+			<x-queue :connection="queueConnection" domain="webhook" class="queue">
+				<template #title><fa :icon="faExchangeAlt"/> Webhook</template>
+			</x-queue>
 		</div>
 	</mk-folder>
 
@@ -686,7 +689,7 @@ export default Vue.extend({
 
 		.vkyrmkwb {
 			display: grid;
-			grid-template-columns: 0.5fr 1fr 1fr;
+			grid-template-columns: 0.5fr 1fr 1fr 1fr;
 			grid-template-rows: 1fr;
 			gap: 16px 16px;
 			margin-bottom: var(--margin);

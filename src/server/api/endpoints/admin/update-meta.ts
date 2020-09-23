@@ -355,6 +355,13 @@ export const meta = {
 			}
 		},
 
+		enableWebhookNotification: {
+			validator: $.optional.bool,
+			desc: {
+				'ja-JP': 'Webhook 通知を有効にするか否か'
+			}
+		},
+
 		tosUrl: {
 			validator: $.optional.nullable.str,
 			desc: {
@@ -619,6 +626,10 @@ export default define(meta, async (ps, me) => {
 
 	if (ps.swPrivateKey !== undefined) {
 		set.swPrivateKey = ps.swPrivateKey;
+	}
+
+	if (ps.enableWebhookNotification !== undefined) {
+		set.enableWebhookNotification = ps.enableWebhookNotification;
 	}
 
 	if (ps.tosUrl !== undefined) {

@@ -575,6 +575,7 @@ notificationSettingDesc: "表示する通知の種別を選択してください
 useGlobalSetting: "グローバル設定を使う"
 useGlobalSettingDesc: "オンにすると、アカウントの通知設定が使用されます。オフにすると、個別に設定できるようになります。"
 autoShowCwContent: "CW 投稿の自動展開"
+webhookNotification: "Webhook 通知"
 
 _serverDisconnectedBehavior:
   reload: "自動でリロード"
@@ -1328,3 +1329,11 @@ _autoShowCwContent:
   showAll: "すべての CW 投稿を自動で展開する"
   showWords: "自動展開するキーワード"
   showWordsDescription: "改行区切りでキーワードを入力します。キーワードが注釈または本文に含まれている場合のみ自動展開します。"
+
+_webhookNotification:
+  description: "Slack や Discord にて発行した Webhook URL に Slack 形式の JSON で POST します。インスタンス側の設定で許可されている場合のみ動作します。"
+  enable: "Webhook 通知を有効にする"
+  url: "POST 先 URL"
+  urlDescription: "Slack の場合は URL をそのまま入力します。Discord の場合は URL を入力し後、末尾に /slack を追加します。"
+  test: "送信テスト"
+  instanceDescription: "Webhook 通知を行うには有効にする必要があります。"

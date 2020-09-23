@@ -249,6 +249,8 @@ export class UserRepository extends Repository<User> {
 				integrations: profile!.integrations,
 				mutedWords: profile!.mutedWords,
 				includingNotificationTypes: profile?.includingNotificationTypes,
+				enableWebhookNotification: profile!.enableWebhookNotification,
+				webhookUrl: profile?.webhookUrl,
 			} : {}),
 
 			...(opts.includeSecrets ? {

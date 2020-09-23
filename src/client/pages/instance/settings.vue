@@ -117,6 +117,16 @@
 	</section>
 
 	<section class="_card _vMargin">
+		<div class="_title"><fa :icon="faLink"/> {{ $t('webhookNotification') }}</div>
+		<div class="_content">
+			<mk-switch v-model="enableWebhookNotification">{{ $t('_webhookNotification.enable') }}<template #desc>{{ $t('_webhookNotification.instanceDescription') }}</template></mk-switch>
+		</div>
+		<div class="_footer">
+			<mk-button primary @click="save(true)"><fa :icon="faSave"/> {{ $t('save') }}</mk-button>
+		</div>
+	</section>
+
+	<section class="_card _vMargin">
 		<div class="_title"><fa :icon="faThumbtack"/> {{ $t('pinnedUsers') }}</div>
 		<div class="_content">
 			<mk-textarea v-model="pinnedUsers">
@@ -296,6 +306,7 @@ export default Vue.extend({
 			enableServiceWorker: false,
 			swPublicKey: null,
 			swPrivateKey: null,
+			enableWebhookNotification: false,
 			useObjectStorage: false,
 			objectStorageBaseUrl: null,
 			objectStorageBucket: null,
@@ -364,6 +375,7 @@ export default Vue.extend({
 		this.enableServiceWorker = this.meta.enableServiceWorker;
 		this.swPublicKey = this.meta.swPublickey;
 		this.swPrivateKey = this.meta.swPrivateKey;
+		this.enableWebhookNotification = this.meta.enableWebhookNotification;
 		this.useObjectStorage = this.meta.useObjectStorage;
 		this.objectStorageBaseUrl = this.meta.objectStorageBaseUrl;
 		this.objectStorageBucket = this.meta.objectStorageBucket;
@@ -514,6 +526,7 @@ export default Vue.extend({
 				enableServiceWorker: this.enableServiceWorker,
 				swPublicKey: this.swPublicKey,
 				swPrivateKey: this.swPrivateKey,
+				enableWebhookNotification: this.enableWebhookNotification,
 				useObjectStorage: this.useObjectStorage,
 				objectStorageBaseUrl: this.objectStorageBaseUrl ? this.objectStorageBaseUrl : null,
 				objectStorageBucket: this.objectStorageBucket ? this.objectStorageBucket : null,
