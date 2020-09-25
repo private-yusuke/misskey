@@ -278,6 +278,12 @@ export default Vue.extend({
 				});
 			}
 		}
+
+		if (this.appearNote.cw) {
+			this.showContent = this.$store.state.device.autoShowCwContentAll ||
+				(this.$store.state.device.showCwWords as string[])
+					.some(word => this.appearNote.cw.includes(word) || this.appearNote.text.includes(word));
+		}
 	},
 
 	mounted() {

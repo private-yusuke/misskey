@@ -72,6 +72,8 @@
 		</div>
 	</section>
 
+	<x-cw-content class="_vMargin"/>
+
 	<section class="_card _vMargin">
 		<div class="_title"><fa :icon="faCog"/> {{ $t('appearance') }}</div>
 		<div class="_content">
@@ -138,6 +140,7 @@ import MkRange from '../../components/ui/range.vue';
 import XTheme from './theme.vue';
 import XSidebar from './sidebar.vue';
 import XPlugins from './plugins.vue';
+import XCwContent from './cw-content.vue';
 import { langs } from '../../config';
 import { clientDb, set } from '../../db';
 
@@ -182,6 +185,7 @@ export default Vue.extend({
 		XTheme,
 		XSidebar,
 		XPlugins,
+		XCwContent,
 		MkButton,
 		MkSwitch,
 		MkSelect,
