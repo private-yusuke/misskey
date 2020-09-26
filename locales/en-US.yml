@@ -571,6 +571,7 @@ delayed: "Delayed"
 database: "Database"
 channel: "Channel"
 create: "Create"
+webhookNotification: "Webhook Notification"
 _serverDisconnectedBehavior:
   reload: "Automatically reload"
   dialog: "Show warning dialog"
@@ -1273,3 +1274,11 @@ _deck:
     list: "Lists"
     mentions: "Mentions"
     direct: "Direct"
+
+    _webhookNotification:
+      description: "send a POST request with Slack-like formatted JSON to the specified Webhook URL generated on Slack or Discord. This feature will only work if this instance allows doing so."
+      enable: "Enable Webhook Notification"
+      url: "URL to POST"
+      urlDescription: "For Slack URL, just paste it here. For Discord URL, paste it here then add /slack at the end."
+      test: "Sending test"
+      instanceDescription: "Enabling this setting will allow users to use Webhook Notification."
